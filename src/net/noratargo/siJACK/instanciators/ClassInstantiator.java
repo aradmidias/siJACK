@@ -1,6 +1,6 @@
-package net.noratargo.applicationFramework.instanciators;
+package net.noratargo.siJACK.instanciators;
 
-import net.noratargo.applicationFramework.interfaces.ParameterInstanciator;
+import net.noratargo.siJACK.interfaces.ParameterInstanciator;
 
 public class ClassInstantiator implements ParameterInstanciator<Class> {
 

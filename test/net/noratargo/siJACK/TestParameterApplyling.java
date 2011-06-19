@@ -1,7 +1,9 @@
-package net.noratargo.applicationFramework;
+package net.noratargo.siJACK;
 
 import static org.junit.Assert.*;
-import net.noratargo.applicationFramework.testClasses.ParameterApplyingTestClass;
+import net.noratargo.siJACK.ConfigurationStorage;
+import net.noratargo.siJACK.Configurator;
+import net.noratargo.siJACK.testClasses.ParameterApplyingTestClass;
 
 import org.junit.Test;
 

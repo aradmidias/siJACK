@@ -1,4 +1,4 @@
-package net.noratargo.applicationFramework.deprecated;
+package net.noratargo.siJACK.deprecated;
 //package net.noratargo.applicationFramework;
 //
 //

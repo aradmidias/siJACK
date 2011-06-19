@@ -1,4 +1,4 @@
-package net.noratargo.applicationFramework.annotations;
+package net.noratargo.siJACK.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

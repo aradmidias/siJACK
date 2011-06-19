@@ -1,9 +1,9 @@
-package net.noratargo.applicationFramework;
+package net.noratargo.siJACK;
 
-import net.noratargo.applicationFramework.annotations.ParameterDescription;
-import net.noratargo.applicationFramework.interfaces.ConfigurationManager;
-import net.noratargo.applicationFramework.interfaces.ParameterManager;
-import net.noratargo.applicationFramework.util.DoubleHashMap;
+import net.noratargo.siJACK.annotations.ParameterDescription;
+import net.noratargo.siJACK.interfaces.ConfigurationManager;
+import net.noratargo.siJACK.interfaces.ParameterManager;
+import net.noratargo.siJACK.util.DoubleHashMap;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;

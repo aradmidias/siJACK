@@ -1,8 +1,10 @@
-package net.noratargo.applicationFramework;
+package net.noratargo.siJACK;
 
 import static org.junit.Assert.*;
-import net.noratargo.applicationFramework.testClasses.AlternatePrefixTestClass;
-import net.noratargo.applicationFramework.testClasses.ValueSettingTestClass;
+import net.noratargo.siJACK.ConfigurationStorage;
+import net.noratargo.siJACK.Configurator;
+import net.noratargo.siJACK.testClasses.AlternatePrefixTestClass;
+import net.noratargo.siJACK.testClasses.ValueSettingTestClass;
 
 import org.junit.Test;
 

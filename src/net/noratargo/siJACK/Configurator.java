@@ -1,11 +1,11 @@
-package net.noratargo.applicationFramework;
+package net.noratargo.siJACK;
 
-import net.noratargo.applicationFramework.instanciators.ClassInstantiator;
-import net.noratargo.applicationFramework.instanciators.IntegerInstantiator;
-import net.noratargo.applicationFramework.instanciators.LongInstantiator;
-import net.noratargo.applicationFramework.instanciators.StringInstantiator;
-import net.noratargo.applicationFramework.interfaces.ParameterInstanciator;
-import net.noratargo.applicationFramework.interfaces.ParameterManager;
+import net.noratargo.siJACK.instanciators.ClassInstantiator;
+import net.noratargo.siJACK.instanciators.IntegerInstantiator;
+import net.noratargo.siJACK.instanciators.LongInstantiator;
+import net.noratargo.siJACK.instanciators.StringInstantiator;
+import net.noratargo.siJACK.interfaces.ParameterInstanciator;
+import net.noratargo.siJACK.interfaces.ParameterManager;
 
 import java.util.HashMap;
 import java.util.Map;

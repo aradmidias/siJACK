@@ -1,4 +1,4 @@
-package net.noratargo.applicationFramework;
+package net.noratargo.siJACK;
 
 public final class ParameterPrefixNamePair {
 

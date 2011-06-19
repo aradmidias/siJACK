@@ -1,12 +1,12 @@
-package net.noratargo.applicationFramework.testClasses;
+package net.noratargo.siJACK.testClasses;
 
 
 import java.io.File;
 
-import net.noratargo.applicationFramework.Configurator;
-import net.noratargo.applicationFramework.annotations.ParameterDescription;
-import net.noratargo.applicationFramework.annotations.ParameterName;
-import net.noratargo.applicationFramework.annotations.Prefix;
+import net.noratargo.siJACK.Configurator;
+import net.noratargo.siJACK.annotations.ParameterDescription;
+import net.noratargo.siJACK.annotations.ParameterName;
+import net.noratargo.siJACK.annotations.Prefix;
 
 @Prefix("some.other.package.path")
 public class AlternatePrefixTestClass {

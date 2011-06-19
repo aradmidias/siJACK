@@ -1,4 +1,4 @@
-package net.noratargo.applicationFramework.interfaces;
+package net.noratargo.siJACK.interfaces;
 
 /**
  * A class, implementing this interface is able to create an object out of the given parameter.

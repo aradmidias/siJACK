@@ -1,9 +1,9 @@
-package net.noratargo.applicationFramework;
+package net.noratargo.siJACK;
 
-import net.noratargo.applicationFramework.annotations.ParameterDescription;
-import net.noratargo.applicationFramework.annotations.ParameterName;
-import net.noratargo.applicationFramework.annotations.Prefix;
-import net.noratargo.applicationFramework.interfaces.ParameterInstanciator;
+import net.noratargo.siJACK.annotations.ParameterDescription;
+import net.noratargo.siJACK.annotations.ParameterName;
+import net.noratargo.siJACK.annotations.Prefix;
+import net.noratargo.siJACK.interfaces.ParameterInstanciator;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;

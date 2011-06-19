@@ -1,6 +1,6 @@
-package net.noratargo.applicationFramework.testClasses;
+package net.noratargo.siJACK.testClasses;
 
-import net.noratargo.applicationFramework.annotations.ParameterDescription;
+import net.noratargo.siJACK.annotations.ParameterDescription;
 
 public class ParameterApplyingTestClass {
 

@@ -1,4 +1,4 @@
-package net.noratargo.applicationFramework.util;
+package net.noratargo.siJACK.util;
 
 import java.util.Collections;
 import java.util.HashMap;

@@ -1,6 +1,8 @@
-package net.noratargo.applicationFramework.util;
+package net.noratargo.siJACK.util;
 
 import static org.junit.Assert.*;
+
+import net.noratargo.siJACK.util.DoubleHashMap;
 
 import org.junit.Test;
 

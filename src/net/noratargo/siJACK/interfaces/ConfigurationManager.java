@@ -1,6 +1,6 @@
-package net.noratargo.applicationFramework.interfaces;
+package net.noratargo.siJACK.interfaces;
 
-import net.noratargo.applicationFramework.Parameter;
+import net.noratargo.siJACK.Parameter;
 
 import java.util.Set;
 

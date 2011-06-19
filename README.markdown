@@ -14,28 +14,29 @@ In most cases, you will need to add a command line interpreter to use this too p
 
 * Annotate the fields, you want to configure:
 
-	class Sample {
-		@ParamterDescription("This string describes, what this setting does")
-		private Stirng iAmConfigureable = "this is my default value";
-	}
+		class Sample {
+			@ParamterDescription("This string describes, what this setting does")
+			private Stirng iAmConfigureable = "this is my default value";
+		}
 
-* make all configureable clases known (choose one out of the following three):[[br]]This is necessary to tell the configurator which classes can be configured and what their default value and their description are.
+* make all configureable clases known (choose one out of the following three):
+ 	This is necessary to tell the configurator which classes can be configured and what their default value and their description are.
 	*	add a consturctor having the `Configureable` class as a parameter:
 	
-	class Sample {
-		@ParamterDescription("This string describes, what this setting does")
-		priate Stirng iAmConfigureable = "this is my default value";
-		
-		public Sample(Configureable cfg) {
-			cfg.addConfigureable(this);
+		class Sample {
+			@ParamterDescription("This string describes, what this setting does")
+			priate Stirng iAmConfigureable = "this is my default value";
+			
+			public Sample(Configureable cfg) {
+				cfg.addConfigureable(this);
+			}
 		}
-	}
 	
 	*	Add the class to the Configureable from the outside:
 	
-		public void someMethod(Configurator cfg) {
-			cfg.addConfigureable(this);
-		}
+			public void someMethod(Configurator cfg) {
+				cfg.addConfigureable(this);
+			}
 		
 	*	Use the static constructor and provide a parameterless constructor, if possible:
 	
@@ -51,7 +52,7 @@ In most cases, you will need to add a command line interpreter to use this too p
 		  		 * If you can - for whatever reason - not spcify a default constructor, you can specify the
 		  		 * default value in the @ParameterDescription-Annotation. (See below)
 		  		 */
-	  	}
+	 	 	}
 		}
 	
 * Applying the current configuration to a configureable Object:

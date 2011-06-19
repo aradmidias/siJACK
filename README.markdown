@@ -23,37 +23,37 @@ In most cases, you will need to add a command line interpreter to use this too p
  	This is necessary to tell the configurator which classes can be configured and what their default value and their description are.
 	*	add a consturctor having the `Configureable` class as a parameter:
 	
-		class Sample {
-			@ParamterDescription("This string describes, what this setting does")
-			priate Stirng iAmConfigureable = "this is my default value";
-			
-			public Sample(Configureable cfg) {
-				cfg.addConfigureable(this);
+			class Sample {
+				@ParamterDescription("This string describes, what this setting does")
+				priate Stirng iAmConfigureable = "this is my default value";
+				
+				public Sample(Configureable cfg) {
+					cfg.addConfigureable(this);
+				}
 			}
-		}
 	
 	*	Add the class to the Configureable from the outside:
 	
-			public void someMethod(Configurator cfg) {
-				cfg.addConfigureable(this);
-			}
+				public void someMethod(Configurator cfg) {
+					cfg.addConfigureable(this);
+				}
 		
 	*	Use the static constructor and provide a parameterless constructor, if possible:
 	
-		class Sample {
-		 	static {
-		  		/* this constructor will be called when the class has been loaded - so it is executed only once. */
-		  		SomeClassThatHoldsTheConfiguratorInstance.getConfigurator().addConfigureable(Sample.class);
-		  	}
-		  	
-		  	private Sample() {
-		  		/*
-		  		 * This constructor does nothing, but creating an instance, setting up the default values.
-		  		 * If you can - for whatever reason - not spcify a default constructor, you can specify the
-		  		 * default value in the @ParameterDescription-Annotation. (See below)
-		  		 */
-	 	 	}
-		}
+			class Sample {
+			 	static {
+			  		/* this constructor will be called when the class has been loaded - so it is executed only once. */
+			  		SomeClassThatHoldsTheConfiguratorInstance.getConfigurator().addConfigureable(Sample.class);
+			  	}
+			  	
+			  	private Sample() {
+			  		/*
+			  		 * This constructor does nothing, but creating an instance, setting up the default values.
+			  		 * If you can - for whatever reason - not spcify a default constructor, you can specify the
+			  		 * default value in the @ParameterDescription-Annotation. (See below)
+			  		 */
+		 	 	}
+			}
 	
 * Applying the current configuration to a configureable Object:
 	*	by using a constructor:

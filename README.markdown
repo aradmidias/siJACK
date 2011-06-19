@@ -19,7 +19,7 @@ In most cases, you will need to add a command line interpreter to use this too p
 	}
 
 * make all configureable clases known (choose one out of the following three):[[br]]This is necessary to tell the configurator which classes can be configured and what their default value and their description are.
-**	add a consturctor having the `Configureable` class as a parameter:
+	*	add a consturctor having the `Configureable` class as a parameter:
 	class Sample {
 		@ParamterDescription("This string describes, what this setting does")
 		priate Stirng iAmConfigureable = "this is my default value";
@@ -28,11 +28,11 @@ In most cases, you will need to add a command line interpreter to use this too p
 			cfg.addConfigureable(this);
 		}
 	}
-**	Add the class to the Configureable from the outside:
+	*	Add the class to the Configureable from the outside:
 		public void someMethod(Configurator cfg) {
 			cfg.addConfigureable(this);
 		}
-**	Use the static constructor and provide a parameterless constructor, if possible:
+	*	Use the static constructor and provide a parameterless constructor, if possible:
 	class Sample {
 	 	static {
 	  		/* this constructor will be called when the class has been loaded - so it is executed only once. */
@@ -48,7 +48,7 @@ In most cases, you will need to add a command line interpreter to use this too p
 	  	}
 	}
 * Applying the current configuration to a configureable Object:
-**	by using a constructor:
+	*	by using a constructor:
 		class Sample {
 			@ParamterDescription("This string describes, what this setting does")
 			priate Stirng iAmConfigureable = "this is my default value";
@@ -58,7 +58,7 @@ In most cases, you will need to add a command line interpreter to use this too p
 			}
 		}
   
-**	by applying the values from outside:
+	*	by applying the values from outside:
 			public vid someMethod(Configurator cfg) {
 				Sample sampleClassInstance = new Smaple();
 				cfg.applyConfiguration(sampleClassInstance);

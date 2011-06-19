@@ -81,7 +81,7 @@ In most cases, you will need to add a command line interpreter to use this too p
 				/* We use the colon as a seperator between prefix and field name. I'll talk about the prefix a bit later. */
 				
 				/* Note, that the ConfigurationStorage Class implements both interfaces: ParameterManager and ConfigurationManager. */
-				ConfigurationStorage cs = new ConfigurationStorage(":");
+				ConfigurationStorage cs = new ConfigurationStorage(":", new InstantiatorStorage());
 				Configurator cfg = new Configurator(cs);
 			}
 

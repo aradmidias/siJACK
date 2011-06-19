@@ -3,7 +3,7 @@ package net.noratargo.siJACK;
 import net.noratargo.siJACK.annotations.ParameterDescription;
 import net.noratargo.siJACK.annotations.ParameterName;
 import net.noratargo.siJACK.annotations.Prefix;
-import net.noratargo.siJACK.interfaces.ParameterInstanciator;
+import net.noratargo.siJACK.interfaces.InstantiatorManager;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -37,20 +37,19 @@ public class Parameter<T> {
 	 * Holds the default value. This acts as a basis for new instances, but is never returned as
 	 */
 	private final T defaultValue;
-	private final String defaultValueString;
 
 	/**
 	 * 
 	 */
 	private T currentValue;
 	
-	private String currentValueString;
-
 	private final String description;
 
 	private final String defaultParameterPrefix;
 
 	private final String defaultParameterName;
+	
+	private final InstantiatorManager im;
 
 	/**
 	 * @param f
@@ -58,12 +57,12 @@ public class Parameter<T> {
 	 * @param classPrefixes
 	 *            a list of all class-based prefixes.
 	 */
-	public Parameter(Field f) {
-		this(f, null);
+	public Parameter(Field f, InstantiatorManager im) {
+		this(f, null, im);
 	}
 
 	@SuppressWarnings("unchecked")
-	public Parameter(Field f, Object o) {
+	public Parameter(Field f, Object o, InstantiatorManager im) {
 		/* enshure, that we may do a lot of fine stuff with this field: */
 		f.setAccessible(true);
 
@@ -72,6 +71,7 @@ public class Parameter<T> {
 		fieldName = f.getName();
 		fieldType = (Class<T>) f.getType();
 		parameterNames = new HashSet<ParameterPrefixNamePair>();
+		this.im = im;
 
 		/* we now have at least one prefix. Now let's get the Describing annotation: */
 		ParameterDescription paramDescription = f.getAnnotation(ParameterDescription.class);
@@ -84,54 +84,7 @@ public class Parameter<T> {
 		 */
 
 		/* try to determine the default value: */
-		T v = null;
-		try {
-			if (o == null && !Modifier.isStatic(f.getModifiers())) {
-				/*
-				 * we can not access a non-static field with a null-object. So we try to create one (if this does not
-				 * work, we can continue outside of this try-catch-block, since we could not obtain the value by this
-				 * way, anyway):
-				 */
-				o = declaringClassName.newInstance();
-			}
-
-			v = (T) f.get(o);
-		} catch (IllegalArgumentException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-		} catch (InstantiationException e) {
-			e.printStackTrace();
-		}
-
-		if (v == null) {
-			/* look for a default value inside the Annotation: */
-			String value = paramDescription.defaultValue();
-
-			if ("".equals(value)) {
-				/* it is posible, that we should use an empty string as default value. */
-				if (paramDescription.doNotComplainAboutDefaultParameter()) {
-					System.err
-							.println("Warning: Maybe there is no explicit default value set for field: "
-									+ declaringClassName.getName()
-									+ "."
-									+ fieldName
-									+ " I will try to continue using "
-									+ (paramDescription.isDefaultValueNull() ? "null" : "an empty String\"\"")
-									+ " instead. "
-									+ "If you want to have null as default, set the isDefaultValueNull parameter to true. If you do not want to see this message again, set doNotComplainAboutNullParameter to true!");
-				}
-
-				value = paramDescription.isDefaultValueNull() ? null : "";
-			}
-
-			defaultValueString = value;
-			v = Configurator.getInstanciator(fieldType).createNewInstance(value, null);
-		} else {
-			defaultValueString = null;
-		}
-
-		defaultValue = v;
+		defaultValue = determineDefaultValue(f, o, paramDescription);
 
 		/* create the prefix and name pairs for this Parameter (and also try to obtain the default prefix and name): */
 
@@ -176,10 +129,52 @@ public class Parameter<T> {
 			fillParameterNames(pn, prefix);
 		}
 		
-		
 		/* now we have got a default value, so we can use it as it is: */
 		currentValue = defaultValue;
-		currentValueString = defaultValueString;
+	}
+
+	@SuppressWarnings("unchecked")
+	private T determineDefaultValue(Field f, Object o, ParameterDescription paramDescription) {
+		try {
+			if (o == null && !Modifier.isStatic(f.getModifiers())) {
+				/*
+				 * we can not access a non-static field with a null-object. So we try to create one (if this does not
+				 * work, we can continue outside of this try-catch-block, since we could not obtain the value by this
+				 * way, anyway):
+				 */
+				o = declaringClassName.newInstance();
+			}
+
+			return (T) f.get(o);
+		} catch (IllegalArgumentException e) {
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		} catch (InstantiationException e) {
+			e.printStackTrace();
+		}
+
+		/* look for a default value inside the Annotation: */
+		String value = paramDescription.defaultValue();
+
+		if ("".equals(value)) {
+			/* it is posible, that we should use an empty string as default value. */
+			if (paramDescription.doNotComplainAboutDefaultParameter()) {
+				System.err
+						.println("Warning: Maybe there is no explicit default value set for field: "
+								+ declaringClassName.getName()
+								+ "."
+								+ fieldName
+								+ " I will try to continue using "
+								+ (paramDescription.isDefaultValueNull() ? "null" : "an empty String\"\"")
+								+ " instead. "
+								+ "If you want to have null as default, set the isDefaultValueNull parameter to true. If you do not want to see this message again, set doNotComplainAboutNullParameter to true!");
+			}
+
+			value = paramDescription.isDefaultValueNull() ? null : "";
+		}
+
+		return im.getNewInstanceFor(fieldType, value);
 	}
 	
 	private void fillParameterNames(ParameterName pn, Prefix p) {
@@ -301,8 +296,7 @@ public class Parameter<T> {
 	 */
 	public void apply(Field f, Object o) throws IllegalArgumentException, IllegalAccessException {
 		f.setAccessible(true);
-		ParameterInstanciator<T> instanciator = Configurator.getInstanciator(fieldType);
-		f.set(o, instanciator.createNewInstance(currentValueString, currentValue));
+		f.set(o, im.getNewInstanceFrom(currentValue));
 	}
 
 	@Override
@@ -357,18 +351,8 @@ public class Parameter<T> {
 		return this.defaultParameterPrefix;
 	}
 
-	public String getDefaultValueString() {
-		return this.defaultValueString;
-	}
-
 	public void setCurrentValue(T currentValue) {
-		if (currentValue == null) {
-			//note: this does no make sense: the currentValue can be null, if defaultValue is null, but we do not allow null-values to be set!? Why not???
-			throw new NullPointerException("The value you try to set must not be null!");
-		}
-
 		this.currentValue = currentValue;
-		this.currentValueString = null;
 	}
 	
 	/**
@@ -376,7 +360,6 @@ public class Parameter<T> {
 	 * @param value
 	 */
 	public void setCurrentValueAsString(String value) {
-		currentValue = Configurator.getInstanciator(fieldType).createNewInstance(value, null);
-		currentValueString = value;
+		currentValue = im.getNewInstanceFor(fieldType, value);
 	}
 }

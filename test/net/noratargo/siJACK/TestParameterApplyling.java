@@ -3,6 +3,7 @@ package net.noratargo.siJACK;
 import static org.junit.Assert.*;
 import net.noratargo.siJACK.ConfigurationStorage;
 import net.noratargo.siJACK.Configurator;
+import net.noratargo.siJACK.interfaces.InstantiatorManager;
 import net.noratargo.siJACK.testClasses.ParameterApplyingTestClass;
 
 import org.junit.Test;
@@ -11,7 +12,8 @@ public class TestParameterApplyling {
 
 	@Test
 	public final void testAlternativeParameterNames() {
-		ConfigurationStorage cs = new ConfigurationStorage(":");
+		InstantiatorManager im = new InstantiatorStorage();
+		ConfigurationStorage cs = new ConfigurationStorage(":", im);
 		Configurator c = new Configurator(cs);
 		c.addConfigureable(ParameterApplyingTestClass.class);
 

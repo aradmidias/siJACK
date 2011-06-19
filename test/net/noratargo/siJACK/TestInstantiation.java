@@ -3,6 +3,7 @@ package net.noratargo.siJACK;
 import static org.junit.Assert.*;
 import net.noratargo.siJACK.ConfigurationStorage;
 import net.noratargo.siJACK.Configurator;
+import net.noratargo.siJACK.interfaces.InstantiatorManager;
 import net.noratargo.siJACK.testClasses.AlternatePrefixTestClass;
 import net.noratargo.siJACK.testClasses.ValueSettingTestClass;
 
@@ -12,7 +13,8 @@ public class TestInstantiation {
 
 	@Test
 	public final void testConfigurationStorage() {
-		ConfigurationStorage cs = new ConfigurationStorage(":");
+		InstantiatorManager im = new InstantiatorStorage();
+		ConfigurationStorage cs = new ConfigurationStorage(":", im);
 		Configurator c = new Configurator(cs);
 
 		c.addConfigureable(new ValueSettingTestClass());
@@ -27,7 +29,8 @@ public class TestInstantiation {
 
 	@Test
 	public final void testConfigurationBeforeAddingConfigureable() {
-		ConfigurationStorage cs = new ConfigurationStorage(":");
+		InstantiatorManager im = new InstantiatorStorage();
+		ConfigurationStorage cs = new ConfigurationStorage(":", im);
 		Configurator c = new Configurator(cs);
 
 		cs.setParameter("net.noratargo.applicationFramework.testClasses.ValueSettingTestClass", "name", "admin");
@@ -41,7 +44,8 @@ public class TestInstantiation {
 
 	@Test
 	public final void testAlternativeParameterNames() {
-		ConfigurationStorage cs = new ConfigurationStorage(":");
+		InstantiatorManager im = new InstantiatorStorage();
+		ConfigurationStorage cs = new ConfigurationStorage(":", im);
 		Configurator c = new Configurator(cs);
 		cs.setParameter("current preix:alternatePrefixParam", "prefix_");
 

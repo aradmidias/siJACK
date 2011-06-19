@@ -1,14 +1,6 @@
 package net.noratargo.siJACK;
 
-import net.noratargo.siJACK.instanciators.ClassInstantiator;
-import net.noratargo.siJACK.instanciators.IntegerInstantiator;
-import net.noratargo.siJACK.instanciators.LongInstantiator;
-import net.noratargo.siJACK.instanciators.StringInstantiator;
-import net.noratargo.siJACK.interfaces.ParameterInstanciator;
 import net.noratargo.siJACK.interfaces.ParameterManager;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Manages the configuration for the various elements.
@@ -19,37 +11,8 @@ public class Configurator {
 
 	private ParameterManager pm;
 
-	private static Map<Class<?>, ParameterInstanciator<?>> instantiators = new HashMap<Class<?>, ParameterInstanciator<?>>();
-	
-	static {
-		addInstantiator(new StringInstantiator());
-		addInstantiator(new IntegerInstantiator(), new Class<?>[] {Integer.class, int.class});
-		addInstantiator(new LongInstantiator(), new Class<?>[] {Long.class, long.class});
-		addInstantiator(new ClassInstantiator());
-	}
-	
 	public Configurator(ParameterManager pm) {
 		this.pm = pm;
-	}
-
-	@SuppressWarnings("unchecked")
-	public static <T> ParameterInstanciator<T> getInstanciator(Class<T> c) {
-		if (! instantiators.containsKey(c)) {
-			throw new RuntimeException("There is no instantiator for "+c +" can not continue!");
-		}
-		
-		/* here, i assume (hope?), that this will always be the correct type: */
-		return (ParameterInstanciator<T>) instantiators.get(c);
-	}
-	
-	public static void addInstantiator(ParameterInstanciator<?> i) {
-		instantiators.put(i.getInstanceType(), i);
-	}
-	
-	private static void addInstantiator(ParameterInstanciator<?> i, Class<?>[] classes) {
-		for (Class<?> c : classes) {
-			instantiators.put(c, i);
-		}
 	}
 
 	/**

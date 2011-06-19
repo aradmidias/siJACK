@@ -5,6 +5,7 @@ import net.noratargo.siJACK.ConfigurationStorage;
 import net.noratargo.siJACK.Configurator;
 import net.noratargo.siJACK.Parameter;
 import net.noratargo.siJACK.ParameterPrefixNamePair;
+import net.noratargo.siJACK.interfaces.InstantiatorManager;
 import net.noratargo.siJACK.testClasses.ParametrisedClass;
 
 import org.junit.Test;
@@ -13,7 +14,8 @@ public class TestSuperclassAutoInitialisation {
 
 	@Test
 	public final void testConfigurationStorage() {
-		ConfigurationStorage cs = new ConfigurationStorage(":");
+		InstantiatorManager im = new InstantiatorStorage();
+		ConfigurationStorage cs = new ConfigurationStorage(":", im);
 		Configurator c = new Configurator(cs);
 
 		c.addConfigureable(new ParametrisedClass());

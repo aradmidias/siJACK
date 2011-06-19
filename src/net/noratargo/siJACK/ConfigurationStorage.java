@@ -2,6 +2,7 @@ package net.noratargo.siJACK;
 
 import net.noratargo.siJACK.annotations.ParameterDescription;
 import net.noratargo.siJACK.interfaces.ConfigurationManager;
+import net.noratargo.siJACK.interfaces.InstantiatorManager;
 import net.noratargo.siJACK.interfaces.ParameterManager;
 import net.noratargo.siJACK.util.DoubleHashMap;
 
@@ -26,10 +27,13 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 	private final DoubleHashMap<String, String, Parameter<?>> pnParameters;
 
 	private final ArrayList<PrefixNameValueStorage> unsetValues;
+	
+	private final InstantiatorManager im;
 
-	public ConfigurationStorage(String seperator) {
+	public ConfigurationStorage(String seperator, InstantiatorManager im) {
 		this.seperator = seperator;
-
+		this.im = im;
+		
 		cfParameters = new DoubleHashMap<Class<?>, String, Parameter<?>>();
 		pnParameters = new DoubleHashMap<String, String, Parameter<?>>();
 		unsetValues = new ArrayList<PrefixNameValueStorage>();
@@ -45,7 +49,7 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 			for (Field f : c.getDeclaredFields()) {
 				if (f.getAnnotation(ParameterDescription.class) != null) {
 					//TODO: this might crash!
-					Parameter<T> p = new Parameter<T>(f, o);
+					Parameter<T> p = new Parameter<T>(f, o, im);
 					if (!cfParameters.contains(p.getDeclaringClassName(), p.getFieldName())) {
 						/* only insert the Parameter, if it is not added, yet. */
 						cfParameters.put(p.getDeclaringClassName(), p.getFieldName(), p);

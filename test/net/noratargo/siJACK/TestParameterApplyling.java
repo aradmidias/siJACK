@@ -17,9 +17,9 @@ public class TestParameterApplyling {
 		Configurator c = new Configurator(cs);
 		c.addConfigureable(ParameterApplyingTestClass.class);
 
-		cs.setParameter("net.noratargo.applicationFramework.testClasses.ParameterApplyingTestClass:c", "java.lang.Long");
-		cs.setParameter("net.noratargo.applicationFramework.testClasses.ParameterApplyingTestClass:longValue", "357951");
-		cs.setParameter("net.noratargo.applicationFramework.testClasses.ParameterApplyingTestClass:intValue", "24685");
+		cs.setParameter(ParameterApplyingTestClass.class.getName() + cs.getPrefixNameSeperator() + "c", "java.lang.Long");
+		cs.setParameter(ParameterApplyingTestClass.class.getName() + cs.getPrefixNameSeperator() + "longValue", "357951");
+		cs.setParameter(ParameterApplyingTestClass.class.getName() + cs.getPrefixNameSeperator() + "intValue", "24685");
 
 		ParameterApplyingTestClass patc = new ParameterApplyingTestClass();
 

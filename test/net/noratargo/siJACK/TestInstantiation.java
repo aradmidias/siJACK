@@ -19,7 +19,7 @@ public class TestInstantiation {
 
 		c.addConfigureable(new ValueSettingTestClass());
 
-		cs.setParameter("net.noratargo.applicationFramework.testClasses.ValueSettingTestClass", "name", "admin");
+		cs.setParameter(ValueSettingTestClass.class.getName(), "name", "admin");
 		ValueSettingTestClass vstc = new ValueSettingTestClass();
 
 		c.applyConfiguration(vstc);
@@ -33,7 +33,7 @@ public class TestInstantiation {
 		ConfigurationStorage cs = new ConfigurationStorage(":", im);
 		Configurator c = new Configurator(cs);
 
-		cs.setParameter("net.noratargo.applicationFramework.testClasses.ValueSettingTestClass", "name", "admin");
+		cs.setParameter(ValueSettingTestClass.class.getName(), "name", "admin");
 		c.addConfigureable(new ValueSettingTestClass());
 		ValueSettingTestClass vstc = new ValueSettingTestClass();
 

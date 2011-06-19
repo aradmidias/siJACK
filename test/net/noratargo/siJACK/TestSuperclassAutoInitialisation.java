@@ -6,6 +6,7 @@ import net.noratargo.siJACK.Configurator;
 import net.noratargo.siJACK.Parameter;
 import net.noratargo.siJACK.ParameterPrefixNamePair;
 import net.noratargo.siJACK.interfaces.InstantiatorManager;
+import net.noratargo.siJACK.testClasses.AbstractParametrisedClass;
 import net.noratargo.siJACK.testClasses.ParametrisedClass;
 
 import org.junit.Test;
@@ -20,8 +21,8 @@ public class TestSuperclassAutoInitialisation {
 
 		c.addConfigureable(new ParametrisedClass());
 
-		cs.setParameter("net.noratargo.applicationFramework.testClasses.AbstractParametrisedClass", "s", "new value for a field of an uninstanciable class.");
-		cs.setParameter("net.noratargo.applicationFramework.testClasses.ParametrisedClass", "subString", "new value for a field of an instanciable class.");
+		cs.setParameter(AbstractParametrisedClass.class.getName(), "s", "new value for a field of an uninstanciable class.");
+		cs.setParameter(ParametrisedClass.class.getName(), "subString", "new value for a field of an instanciable class.");
 		ParametrisedClass vstc = new ParametrisedClass();
 
 		c.applyConfiguration(vstc);

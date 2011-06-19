@@ -19,28 +19,24 @@ public interface ParameterInstanciator<T> {
 	public Class<T> getInstanceType();
 
 	/**
-	 * Creates a NEW instance from the given string. The given string is to be interpreted as a textual representation
-	 * of parameters to instantiate the new istance.
-	 * <p>
-	 * It might be, that both parameters are <code>null</code>. In this case, <code>null</code> <b>may</b> be returned
-	 * (but this is not necessary). (Since it is either wanted, or caused by blind stupidity).
-	 * <p>
-	 * If both parameters are given, it depends on the classes implementation, which of the two you will prefer. For
-	 * <b>immutable objects</b> it is legal, to return the provided one (if it is not <code>null</code>). For immutable
-	 * objects you have to create a new instance. Whether you then prefer the <code>params</code> or the
-	 * <code>defaultValue</code> parameter, may depend on your personal preferences.<br />
-	 * <b>In any case, if both parameters are not <code>null</code>, they both represent the same Object.</b>
-	 * <p>
-	 * If you are planning to clone the given <code>defaultObject</code>, keep in mind, that a deep-copy might be the
-	 * preferred way to provide trouble, while a shalow copy will spare you some time and memory.
+	 * Creates a new instance of <code>T</code>.
 	 * 
-	 * @param params
-	 *            A textual representation of parameters, to be used for creating a new instance. Can be
-	 *            <code>null</code>, if a default value has been present.
-	 * @param currentValue
-	 *            The originally created default value. Can be <code>null</code>, if a default value is not yet created.
-	 * @return The new instance. If the returned object is mutable, then it is REUQIRED to be a NEW instance, so that
-	 *         modifications to this instance do not interference with other instances.
+	 * @param param
+	 *            The String-representation of the new element.
+	 * @return a new instance of <code>T</code>.
 	 */
-	public T createNewInstance(String params, T currentValue);
+	public T createNewInstanceFromString(String param);
+
+	/**
+	 * Creates a new instance of the <code>originalValue</code> if <code>T</code> is mutable. May return the
+	 * <code>originalValue</code>, if <code>T</code> is immutable.
+	 * <p>
+	 * The most important part about this method is, that all instances, that it returns are independent from each other
+	 * in that way, that modificatins to one instanc edo not influence the other instance.
+	 * 
+	 * @param originalValue
+	 *            The object to create a copy from.
+	 * @return The new object.
+	 */
+	public T createNewInstance(T originalValue);
 }

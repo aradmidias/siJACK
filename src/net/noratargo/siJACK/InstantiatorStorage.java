@@ -31,13 +31,13 @@ public class InstantiatorStorage implements InstantiatorManager {
 	@Override
 	public <T> T getNewInstanceFor(Class<T> c, String stringRepresentation) {
 		ParameterInstanciator<T> p = getInstanciator(c);
-		return p.createNewInstance(stringRepresentation, null);
+		return p.createNewInstanceFromString(stringRepresentation);
 	}
 
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T> T getNewInstanceFrom(T originalObject) {
-		return getInstanciator((Class<T>) originalObject.getClass()).createNewInstance(null, originalObject);
+		return getInstanciator((Class<T>) originalObject.getClass()).createNewInstance(originalObject);
 	}
 
 	@SuppressWarnings("unchecked")

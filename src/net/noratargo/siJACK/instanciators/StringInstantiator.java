@@ -10,8 +10,12 @@ public class StringInstantiator implements ParameterInstanciator<String> {
 	}
 
 	@Override
-	public String createNewInstance(String params, String currentValue) {
-		return currentValue == null ? params : currentValue;
+	public String createNewInstanceFromString(String param) {
+		return param;
 	}
-
+	
+	@Override
+	public String createNewInstance(String originalValue) {
+		return originalValue;
+	}
 }

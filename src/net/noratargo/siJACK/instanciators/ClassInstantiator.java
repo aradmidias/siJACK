@@ -17,14 +17,19 @@ public class ClassInstantiator implements ParameterInstanciator<Class> {
 	}
 
 	@Override
-	public Class createNewInstance(String params, Class currentValue) {
+	public Class createNewInstanceFromString(String param) {
 		try {
 			/* the class-object is immutable. */
-			return currentValue == null ? (Class.forName(params)) : currentValue;
+			return Class.forName(param);
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 			return null;
 		}
+	}
+
+	@Override
+	public Class createNewInstance(Class originalValue) {
+		return originalValue;
 	}
 
 }

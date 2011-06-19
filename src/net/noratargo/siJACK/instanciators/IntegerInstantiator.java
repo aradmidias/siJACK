@@ -10,8 +10,13 @@ public class IntegerInstantiator implements ParameterInstanciator<Integer> {
 	}
 
 	@Override
-	public Integer createNewInstance(String params, Integer currentValue) {
-		return (params == null ? new Integer(currentValue) : new Integer(params));
+	public Integer createNewInstanceFromString(String params) {
+		return new Integer(params);
+	}
+
+	@Override
+	public Integer createNewInstance(Integer currentValue) {
+		return currentValue;
 	}
 
 }

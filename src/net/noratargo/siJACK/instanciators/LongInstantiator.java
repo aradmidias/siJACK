@@ -10,9 +10,12 @@ public class LongInstantiator implements ParameterInstanciator<Long> {
 	}
 
 	@Override
-	public Long createNewInstance(String params, Long currentValue) {
-		/* The Long-Class is immutable, so we can return the provided object without problems: */
-		return currentValue == null ? new Long(params) : currentValue;
+	public Long createNewInstanceFromString(String param) {
+		return new Long(param);
 	}
-
+	
+	@Override
+	public Long createNewInstance(Long originalValue) {
+		return originalValue;
+	}
 }

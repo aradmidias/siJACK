@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
 public @interface ParameterDescription {
 
 	/**
-	 * Defines the comment to be display, when
+	 * Defines the comment being displayed, when
 	 * 
 	 * @return
 	 */
@@ -29,7 +29,7 @@ public @interface ParameterDescription {
 	
 	boolean doNotComplainAboutDefaultParameter() default false;
 
-	ParameterName[] index() default @ParameterName();
+	ParameterName[] name() default @ParameterName();
 
 	/**
 	 * Defines the ParameterName element, that should be used as default. If -1 is given, then there will be no default

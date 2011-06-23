@@ -11,7 +11,7 @@ import net.noratargo.siJACK.annotations.Prefix;
 @Prefix("some.other.package.path")
 public class AlternatePrefixTestClass {
 
-	@ParameterDescription(index = @ParameterName(value = "dateiname"), description = "the filename's description")
+	@ParameterDescription(name = @ParameterName(value = "dateiname"), description = "the filename's description")
 	private String filename = "geheim.dat";
 
 	@ParameterDescription(description = "Use this username, if no other name has been specified. The usage of names like admin or root is discouraged!")

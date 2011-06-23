@@ -1,14 +1,10 @@
 package net.noratargo.siJACK;
 
+import net.noratargo.siJACK.annotationHelper.ParameterDescriptionHelper;
 import net.noratargo.siJACK.annotations.ParameterDescription;
-import net.noratargo.siJACK.annotations.ParameterName;
-import net.noratargo.siJACK.annotations.Prefix;
 import net.noratargo.siJACK.interfaces.InstantiatorManager;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.util.HashSet;
 import java.util.Set;
 
 public class Parameter<T> {
@@ -42,25 +38,23 @@ public class Parameter<T> {
 	 * 
 	 */
 	private T currentValue;
-	
+
 	private final String description;
 
 	private final String defaultParameterPrefix;
 
 	private final String defaultParameterName;
-	
+
 	private final InstantiatorManager im;
 
 	/**
 	 * @param f
 	 *            the field to represent.
+	 * @param o
+	 *            The object instance to use for determinating the default value.
 	 * @param classPrefixes
 	 *            a list of all class-based prefixes.
 	 */
-	public Parameter(Field f, InstantiatorManager im) {
-		this(f, null, im);
-	}
-
 	@SuppressWarnings("unchecked")
 	public Parameter(Field f, Object o, InstantiatorManager im) {
 		/* enshure, that we may do a lot of fine stuff with this field: */
@@ -70,12 +64,11 @@ public class Parameter<T> {
 		declaringClassName = f.getDeclaringClass();
 		fieldName = f.getName();
 		fieldType = (Class<T>) f.getType();
-		parameterNames = new HashSet<ParameterPrefixNamePair>();
 		this.im = im;
 
 		/* we now have at least one prefix. Now let's get the Describing annotation: */
 		ParameterDescription paramDescription = f.getAnnotation(ParameterDescription.class);
-		description = paramDescription.value().equals("") ? paramDescription.description() : paramDescription.value();
+		description = ParameterDescriptionHelper.getDescription(paramDescription);
 
 		/*
 		 * if f is not static and o is null, the @ParameterDescription annotation MUST have a defaultValue Section. In
@@ -84,204 +77,19 @@ public class Parameter<T> {
 		 */
 
 		/* try to determine the default value: */
-		defaultValue = determineDefaultValue(f, o, paramDescription);
+		defaultValue = ParameterDescriptionHelper.getDefaultValue(f, o, paramDescription, im);
 
 		/* create the prefix and name pairs for this Parameter (and also try to obtain the default prefix and name): */
 
 		/* obtain the current Field's Prefix-annotation: */
-		Prefix prefix = f.getAnnotation(Prefix.class);
-		if (prefix == null) {
-			/* look for a prefix at the defining class: */
-			prefix = declaringClassName.getAnnotation(Prefix.class);
+		ParameterPrefixNamePair defaultPrefixNamePair = ParameterDescriptionHelper.getDefaultPrefixNamePair(paramDescription, f);
+		defaultParameterPrefix = defaultPrefixNamePair.getPrefix();
+		defaultParameterName = defaultPrefixNamePair.getName();
 
-			if (prefix == null) {
-				prefix = createPrefix(new String[] {}, 0, true);
-			}
-		}
-		
-		ParameterName[] index = paramDescription.index();
-		int defaultIndex = paramDescription.defaultParameterNameIndex();
-		
-		/* identify the default prefix and name: */
-		if (defaultIndex == -1) {
-			/* no defautl prefix and/or name: */
-			defaultParameterPrefix = "";
-			defaultParameterName = "";
-		} else if (defaultIndex >= index.length || defaultIndex < -1) {
-			throw new IndexOutOfBoundsException("the index you specified is either too small or too large. There is no element with the index "+ defaultIndex +"\n"+
-					"You must choose from a value IN [-1, "+ (index.length - 1) +"] for "+ declaringClassName +"."+ fieldName);
-		} else {
-			ParameterName i = index[defaultIndex];
-			
-			/* try to finde the prefix: */
-			String def = getDefaultPrefix(i.prefix(), declaringClassName);
-			
-			/* if there is no default prefix given (def==null) look for a prefix in the field-prefix: */
-			def = (def == null && i.applyFieldPrefix() ? getDefaultPrefix(prefix, declaringClassName) : def);
-			defaultParameterPrefix = (def == null ? "" : def);
-			
-			/* try to find the name: */
-			defaultParameterName = getDefaultName(i, f);
-		}
-		
-		/* create the prefix-name-set: */
-		for (ParameterName pn : paramDescription.index()) {
-			fillParameterNames(pn, prefix);
-		}
-		
+		parameterNames = ParameterDescriptionHelper.getParameterPrefixNamePairSet(paramDescription, f);
+
 		/* now we have got a default value, so we can use it as it is: */
 		currentValue = defaultValue;
-	}
-
-	@SuppressWarnings("unchecked")
-	private T determineDefaultValue(Field f, Object o, ParameterDescription paramDescription) {
-		try {
-			if (o == null && !Modifier.isStatic(f.getModifiers())) {
-				/*
-				 * we can not access a non-static field with a null-object. So we try to create one (if this does not
-				 * work, we can continue outside of this try-catch-block, since we could not obtain the value by this
-				 * way, anyway):
-				 */
-				o = declaringClassName.newInstance();
-			}
-
-			return (T) f.get(o);
-		} catch (IllegalArgumentException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-		} catch (InstantiationException e) {
-			e.printStackTrace();
-		}
-
-		/* look for a default value inside the Annotation: */
-		String value = paramDescription.defaultValue();
-
-		if ("".equals(value)) {
-			/* it is posible, that we should use an empty string as default value. */
-			if (paramDescription.doNotComplainAboutDefaultParameter()) {
-				System.err
-						.println("Warning: Maybe there is no explicit default value set for field: "
-								+ declaringClassName.getName()
-								+ "."
-								+ fieldName
-								+ " I will try to continue using "
-								+ (paramDescription.isDefaultValueNull() ? "null" : "an empty String\"\"")
-								+ " instead. "
-								+ "If you want to have null as default, set the isDefaultValueNull parameter to true. If you do not want to see this message again, set doNotComplainAboutNullParameter to true!");
-			}
-
-			value = paramDescription.isDefaultValueNull() ? null : "";
-		}
-
-		return im.getNewInstanceFor(fieldType, value);
-	}
-	
-	private void fillParameterNames(ParameterName pn, Prefix p) {
-		/* stores all collected prefixes for later combindings. */
-		HashSet<String> prefixes = new HashSet<String>();
-
-		/* stores all collected names for later combindings. */
-		HashSet<String> names = new HashSet<String>();
-		
-		/* collect all prefixes: */
-		if (pn.applyFieldPrefix()) {
-			addPrefixesToSet(prefixes, p);
-		}
-		
-		addPrefixesToSet(prefixes, pn.prefix());
-		
-		/* collect all names: */
-		for (String name : pn.value()) {
-			names.add(name);
-		}
-		
-		if (pn.addFieldNameToValues()) {
-			names.add(fieldName);
-		}
-		
-		/* Create the pairing and add them to the parameterNames set: */
-		for (String prefix : prefixes) {
-			for (String name : names) {
-				parameterNames.add(new ParameterPrefixNamePair(prefix, name));
-			}
-		}
-	}
-	
-	private void addPrefixesToSet(Set<String> s, Prefix p) {
-		for (String prefix : p.value()) {
-			s.add(prefix);
-		}
-		
-		if (p.addFullQualifiedClassNameToPrefixList()) {
-			s.add(declaringClassName.getName());
-		}
-	}
-	
-	/**
-	 * 
-	 * @param p
-	 * @param c
-	 * @return <code>null</code> if no default prefix is given, or could not be determined, else a {@link String} is returned.
-	 */
-	private String getDefaultPrefix(Prefix p, Class<?> c) {
-		int defaultPrefixIndex = p.defaultValue();
-		
-		if (defaultPrefixIndex == -1) {
-			return null;
-		} else if (defaultPrefixIndex < -1 || (p.addFullQualifiedClassNameToPrefixList() ? defaultPrefixIndex > p.value().length : defaultPrefixIndex >= p.value().length)) {
-			throw new IndexOutOfBoundsException("the index you specified is either too small or too large. There is no element with the index "+ defaultPrefixIndex +"\n"+
-					"You must choose from a value IN [-1, "+ (p.value().length - (p.addFullQualifiedClassNameToPrefixList() ? 0 : 1)) +"] for "+ declaringClassName +"."+ fieldName);
-		} else {
-			return defaultPrefixIndex == p.value().length ? c.getName() : p.value()[defaultPrefixIndex];
-		}
-	}
-
-	/**
-	 * @param pm
-	 * @param c
-	 * @return The default name for the given field. If the returned Sting is an empty String (""), then there is no
-	 *         default name.
-	 */
-	private String getDefaultName(ParameterName pm, Field f) {
-		int defaultNameIndex = pm.defaultValue();
-
-		if (defaultNameIndex == -1) {
-			return "";
-		} else if (defaultNameIndex < -1
-				|| (pm.addFieldNameToValues() ? defaultNameIndex > pm.value().length : defaultNameIndex >= pm.value().length)) {
-			throw new IndexOutOfBoundsException(
-					"the index you specified is either too small or too large. There is no element with the index "
-							+ defaultNameIndex + "\n" + "You must choose from a value IN [-1, "
-							+ (pm.value().length - (pm.addFieldNameToValues() ? 0 : 1)) + "] for "+ declaringClassName +"."+ fieldName);
-		} else {
-			return defaultNameIndex == pm.value().length ? f.getName() : pm.value()[defaultNameIndex];
-		}
-	}
-
-	private Prefix createPrefix(final String[] value, final int defaultValue, final boolean add) {
-		return new Prefix() {
-
-			@Override
-			public Class<? extends Annotation> annotationType() {
-				return null;
-			}
-
-			@Override
-			public String[] value() {
-				return value;
-			}
-
-			@Override
-			public int defaultValue() {
-				return defaultValue;
-			}
-
-			@Override
-			public boolean addFullQualifiedClassNameToPrefixList() {
-				return add;
-			}
-		};
 	}
 
 	/**
@@ -303,18 +111,18 @@ public class Parameter<T> {
 	public int hashCode() {
 		return declaringClassName.hashCode() + fieldName.hashCode();
 	}
-	
+
 	@Override
 	public boolean equals(Object obj) {
 		if (obj instanceof Parameter<?>) {
 			Parameter<?> p = (Parameter<?>) obj;
-			
+
 			return declaringClassName.equals(p.declaringClassName) && fieldName.equals(p.fieldName);
 		}
-		
+
 		return false;
 	}
-	
+
 	public Class<?> getDeclaringClassName() {
 		return this.declaringClassName;
 	}
@@ -354,9 +162,11 @@ public class Parameter<T> {
 	public void setCurrentValue(T currentValue) {
 		this.currentValue = currentValue;
 	}
-	
+
 	/**
-	 * Sets the (new) current value for this property. In contrast to {@link #setCurrentValue(Object)} this version trys to create the actual object out of the 
+	 * Sets the (new) current value for this property. In contrast to {@link #setCurrentValue(Object)} this version trys
+	 * to create the actual object out of the
+	 * 
 	 * @param value
 	 */
 	public void setCurrentValueAsString(String value) {

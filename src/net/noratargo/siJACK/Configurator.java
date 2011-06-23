@@ -48,4 +48,8 @@ public class Configurator {
 		pm.applyConfiguration();
 	}
 
+	public <T> T createNewInstance(Class<T> from, Object... o) {
+		return null;
+	}
+	
 }

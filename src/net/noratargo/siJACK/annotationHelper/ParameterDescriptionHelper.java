@@ -132,6 +132,7 @@ public class ParameterDescriptionHelper {
 		HashSet<ParameterPrefixNamePair> parameterNames = new HashSet<ParameterPrefixNamePair>();
 
 		Prefix p = determineCurrentPrefix(f);
+		String declaringClassName = f.getDeclaringClass().getName();
 		
 		/* create the prefix-name-set: */
 		for (ParameterName pn : paramDescription.name()) {
@@ -143,10 +144,10 @@ public class ParameterDescriptionHelper {
 
 			/* collect all prefixes: */
 			if (pn.applyFieldPrefix()) {
-				addPrefixesToSet(prefixes, p, f);
+				addPrefixesToSet(prefixes, p, declaringClassName);
 			}
 
-			addPrefixesToSet(prefixes, pn.prefix(), f);
+			addPrefixesToSet(prefixes, pn.prefix(), declaringClassName);
 
 			/* collect all names: */
 			for (String name : pn.value()) {
@@ -165,18 +166,16 @@ public class ParameterDescriptionHelper {
 			}
 		}
 		
-		
-		
 		return parameterNames;
 	}
 
-	private static void addPrefixesToSet(Set<String> s, Prefix p, Field f) {
+	private static void addPrefixesToSet(Set<String> s, Prefix p, String declaringClassName) {
 		for (String prefix : p.value()) {
 			s.add(prefix);
 		}
 
 		if (p.addFullQualifiedClassNameToPrefixList()) {
-			s.add(f.getDeclaringClass().getName());
+			s.add(declaringClassName);
 		}
 	}
 

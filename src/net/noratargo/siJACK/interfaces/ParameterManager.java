@@ -7,6 +7,9 @@ import net.noratargo.siJACK.annotations.ParameterDescription;
 import java.lang.reflect.Field;
 
 /**
+ * The ParameterManager holds all Parameters, that can be configured.
+ * 
+ * 
  * The configuration Storage holds all known Configurations and provides ways to apply values to parameters, that are
  * not known at that time.
  * <p>
@@ -22,7 +25,8 @@ public interface ParameterManager {
 	 * <p>
 	 * Values, that might have been set, <b>MUST NOT</b> be reset!
 	 * 
-	 * @param c The class-Object to use.
+	 * @param c
+	 *            The class-Object to use.
 	 */
 	public <T> void addClass(Class<T> c, Object o);
 

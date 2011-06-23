@@ -21,7 +21,7 @@ import java.lang.annotation.Target;
  * @author HMulthaupt
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.TYPE, ElementType.FIELD, ElementType.CONSTRUCTOR })
+@Target({ ElementType.TYPE, ElementType.FIELD, ElementType.CONSTRUCTOR, ElementType.PARAMETER})
 public @interface Prefix {
 
 	/**

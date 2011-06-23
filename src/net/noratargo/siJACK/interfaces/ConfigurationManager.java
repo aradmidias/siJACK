@@ -8,11 +8,11 @@ public interface ConfigurationManager {
 
 	public void setParameter(String name, String value);
 
-//	public void setParameter(CharSequence name, CharSequence value);
+//	public <T> void setParameter(CharSequence name, CharSequence value);
 	
-	public void setParameter(String prefix, String name, String value);
+	public <T> void setParameter(String prefix, String name, String value);
 
-//	public void setParameter(CharSequence prefix, CharSequence name, CharSequence value);
+//	public <T> void setParameter(CharSequence prefix, CharSequence name, CharSequence value);
 	
 	/**
 	 * Returns the String, representing the Seperator, used to seperate a parameter's prefix and name.

@@ -6,6 +6,7 @@ import net.noratargo.siJACK.interfaces.InstantiatorManager;
 import net.noratargo.siJACK.interfaces.ParameterManager;
 import net.noratargo.siJACK.util.DoubleHashMap;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -40,34 +41,6 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 	}
 
 	@Override
-	public <T> void addClass(Class<T> c, Object o) {
-		if (c.getSuperclass() != null) {
-			addClass(c.getSuperclass(), o);
-		}
-		
-		if (!cfParameters.hasSuperKey(c)) {
-			for (Field f : c.getDeclaredFields()) {
-				if (f.getAnnotation(ParameterDescription.class) != null) {
-					//TODO: this might crash!
-					Parameter<T> p = new Parameter<T>(f, o, im);
-					if (!cfParameters.contains(p.getDeclaringClassName(), p.getFieldName())) {
-						/* only insert the Parameter, if it is not added, yet. */
-						cfParameters.put(p.getDeclaringClassName(), p.getFieldName(), p);
-
-						for (ParameterPrefixNamePair pn : p.getParameterNames()) {
-							if (pnParameters.contains(pn.getPrefix(), pn.getName())) {
-								throw new RuntimeException();
-							}
-
-							pnParameters.put(pn.getPrefix(), pn.getName(), p);
-						}
-					}
-				}
-			}
-		}
-	}
-
-	@Override
 	public void setParameter(String name, String value) {
 		int index = name.indexOf(seperator);
 
@@ -88,63 +61,54 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 	}
 
 	@Override
-	public void setParameter(String prefix, String name, String value) {
-		Parameter<?> parameter = pnParameters.get(prefix, name);
+	public <T> void setParameter(String prefix, String name, String value) {
+		@SuppressWarnings("unchecked")
+		Parameter<T> parameter = (Parameter<T>) pnParameters.get(prefix, name);
 
 		if (parameter == null) {
 			/* store this change in a list... */
 			unsetValues.add(new PrefixNameValueStorage(prefix, name, value));
 		} else {
 			/* Configure the parameter: */
-			parameter.setCurrentValueAsString(value);
+			parameter.setCurrentValue(im.getNewInstanceFor(parameter.getFieldType(), value));
 		}
 	}
 
 	@Override
-	public void configureObject(Object o, Class<?> c, Configurator cfg) {
-		if (c.getSuperclass() != null) {
-			configureObject(o, c.getSuperclass(), cfg);
-		}
-		
-		for (Field f : c.getDeclaredFields()) {
-			if (f.getAnnotation(ParameterDescription.class) != null) {
-				Parameter<?> parameter = cfParameters.get(f.getDeclaringClass(), f.getName());
-
-				if (parameter == null) {
-					throw new NoSuchElementException(
-							"There is no field defined for configuration. This field should be configured: "
-									+ f.getDeclaringClass() + "." + f.getName());
-				}
-
-				try {
-					parameter.apply(f, o);
-				} catch (IllegalArgumentException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (IllegalAccessException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		}
-	}
-
-	@Override
-	public void applyConfiguration() {
+	public <T> void applyConfiguration() {
 		Iterator<PrefixNameValueStorage> iterator = unsetValues.iterator();
 
 		while (iterator.hasNext()) {
 			PrefixNameValueStorage unsetValue = iterator.next();
-			Parameter<?> parameter = pnParameters.get(unsetValue.prefix, unsetValue.name);
+			
+			@SuppressWarnings("unchecked")
+			Parameter<T> parameter = (Parameter<T>) pnParameters.get(unsetValue.prefix, unsetValue.name);
 
 			if (parameter != null) {
 				/* Configure the parameter and remove the unsetValue (sinc eit now is set): */
-				parameter.setCurrentValueAsString(unsetValue.value);
+				parameter.setCurrentValue(im.getNewInstanceFor(parameter.getFieldType(), unsetValue.value));
 				iterator.remove();
 			}
 		}
 	}
-
+	
+	@Override
+	public Object getValueFor(Field f) {
+		Parameter<?> p = cfParameters.get(f.getDeclaringClass(), f.getName());
+		
+		if (p == null) {
+			throw new NoSuchElementException("The given field is no known parameter: "+ f);
+		}
+		
+		return im.getNewInstanceFrom(p.getCurrentValue());
+	}
+	
+	@Override
+	public Object[] getValuesFor(Constructor<?> c) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
 	@Override
 	public Set<Parameter<?>> getParameters() {
 		return cfParameters.getValueSet();
@@ -165,5 +129,30 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 			this.name = name;
 			this.value = value;
 		}
+	}
+
+	@Override
+	public <T> void addField(Field f, T defaultValue) {
+		if (f.getAnnotation(ParameterDescription.class) != null) {
+			Parameter<T> p = new Parameter<T>(f, defaultValue, im);
+			if (!cfParameters.contains(p.getDeclaringClassName(), p.getFieldName())) {
+				/* only insert the Parameter, if it is not added, yet. */
+				cfParameters.put(p.getDeclaringClassName(), p.getFieldName(), p);
+
+				for (ParameterPrefixNamePair pn : p.getParameterNames()) {
+					if (pnParameters.contains(pn.getPrefix(), pn.getName())) {
+						throw new RuntimeException();
+					}
+
+					pnParameters.put(pn.getPrefix(), pn.getName(), p);
+				}
+			}
+		}
+	}
+
+	@Override
+	public <T> void addConstructor(Constructor<T> constr) {
+		// TODO Auto-generated method stub
+		
 	}
 }

@@ -1,16 +1,15 @@
 package net.noratargo.siJACK.annotationHelper;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.util.HashSet;
-import java.util.Set;
-
 import net.noratargo.siJACK.ParameterPrefixNamePair;
 import net.noratargo.siJACK.annotations.ParameterDescription;
 import net.noratargo.siJACK.annotations.ParameterName;
 import net.noratargo.siJACK.annotations.Prefix;
 import net.noratargo.siJACK.interfaces.InstantiatorManager;
+
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
+import java.util.HashSet;
+import java.util.Set;
 
 public class ParameterDescriptionHelper {
 	
@@ -180,26 +179,9 @@ public class ParameterDescriptionHelper {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static <T> T getDefaultValue(Field f, Object o, ParameterDescription paramDescription, InstantiatorManager im) {
-		Class<?> declaringClassName = f.getDeclaringClass();
-		
-		try {
-			if (o == null && !Modifier.isStatic(f.getModifiers())) {
-				/*
-				 * we can not access a non-static field with a null-object. So we try to create one (if this does not
-				 * work, we can continue outside of this try-catch-block, since we could not obtain the value by this
-				 * way, anyway):
-				 */
-				o = declaringClassName.newInstance();
-			}
-
-			return (T) f.get(o);
-		} catch (IllegalArgumentException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-		} catch (InstantiationException e) {
-			e.printStackTrace();
+	public static <T> T getDefaultValue(Field f, T givenDefaultValue, ParameterDescription paramDescription, InstantiatorManager im) {
+		if (givenDefaultValue != null) {
+			return im.getNewInstanceFrom(givenDefaultValue);
 		}
 
 		/* look for a default value inside the Annotation: */
@@ -210,7 +192,7 @@ public class ParameterDescriptionHelper {
 			if (paramDescription.doNotComplainAboutDefaultParameter()) {
 				System.err
 						.println("Warning: Maybe there is no explicit default value set for field: "
-								+ declaringClassName.getName()
+								+ f.getDeclaringClass().getName()
 								+ "."
 								+ f.getName()
 								+ " I will try to continue using "

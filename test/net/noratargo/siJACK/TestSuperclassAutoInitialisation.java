@@ -29,12 +29,12 @@ public class TestSuperclassAutoInitialisation {
 
 		for (Parameter<?> p : cs.getParameters()) {
 			String s = p.getDefaultParameterPrefix() + cs.getPrefixNameSeperator() + p.getDefaultParameterName();
-			System.out.println("TestSuperclassAutoInitialisation.testConfigurationStorage() c["+ s +"]  = "+ p.getCurrentValue());
-			System.out.println("TestSuperclassAutoInitialisation.testConfigurationStorage() c["+ s +"] := "+ p.getDefaultValue());
+//			System.out.println("TestSuperclassAutoInitialisation.testConfigurationStorage() c["+ s +"]  = "+ p.getCurrentValue());
+//			System.out.println("TestSuperclassAutoInitialisation.testConfigurationStorage() c["+ s +"] := "+ p.getDefaultValue());
 			
-			for (ParameterPrefixNamePair ppnp : p.getParameterNames()) {
-				System.out.println("TestSuperclassAutoInitialisation.testConfigurationStorage() c["+ s +"] available as: "+ ppnp.getPrefix() + cs.getPrefixNameSeperator() + ppnp.getName());
-			}
+//			for (ParameterPrefixNamePair ppnp : p.getParameterNames()) {
+//				System.out.println("TestSuperclassAutoInitialisation.testConfigurationStorage() c["+ s +"] available as: "+ ppnp.getPrefix() + cs.getPrefixNameSeperator() + ppnp.getName());
+//			}
 		}
 		
 		assertEquals("new value for a field of an uninstanciable class.", vstc.s);

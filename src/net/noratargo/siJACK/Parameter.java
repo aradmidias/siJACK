@@ -45,8 +45,6 @@ public class Parameter<T> {
 
 	private final String defaultParameterName;
 
-	private final InstantiatorManager im;
-
 	/**
 	 * @param f
 	 *            the field to represent.
@@ -56,7 +54,7 @@ public class Parameter<T> {
 	 *            a list of all class-based prefixes.
 	 */
 	@SuppressWarnings("unchecked")
-	public Parameter(Field f, Object o, InstantiatorManager im) {
+	public Parameter(Field f, T givenDefaultValue, InstantiatorManager im) {
 		/* enshure, that we may do a lot of fine stuff with this field: */
 		f.setAccessible(true);
 
@@ -64,7 +62,6 @@ public class Parameter<T> {
 		declaringClassName = f.getDeclaringClass();
 		fieldName = f.getName();
 		fieldType = (Class<T>) f.getType();
-		this.im = im;
 
 		/* we now have at least one prefix. Now let's get the Describing annotation: */
 		ParameterDescription paramDescription = f.getAnnotation(ParameterDescription.class);
@@ -77,7 +74,7 @@ public class Parameter<T> {
 		 */
 
 		/* try to determine the default value: */
-		defaultValue = ParameterDescriptionHelper.getDefaultValue(f, o, paramDescription, im);
+		defaultValue = ParameterDescriptionHelper.getDefaultValue(f, givenDefaultValue, paramDescription, im);
 
 		/* create the prefix and name pairs for this Parameter (and also try to obtain the default prefix and name): */
 
@@ -90,21 +87,6 @@ public class Parameter<T> {
 
 		/* now we have got a default value, so we can use it as it is: */
 		currentValue = defaultValue;
-	}
-
-	/**
-	 * Applies the {@link #currentValue} to the given field of the given object.
-	 * 
-	 * @param f
-	 *            The field to apply the value to
-	 * @param o
-	 *            The object to apply the value to
-	 * @throws IllegalAccessException
-	 * @throws IllegalArgumentException
-	 */
-	public void apply(Field f, Object o) throws IllegalArgumentException, IllegalAccessException {
-		f.setAccessible(true);
-		f.set(o, im.getNewInstanceFrom(currentValue));
 	}
 
 	@Override
@@ -143,7 +125,7 @@ public class Parameter<T> {
 		return this.fieldName;
 	}
 
-	public Class<?> getFieldType() {
+	public Class<T> getFieldType() {
 		return this.fieldType;
 	}
 
@@ -161,15 +143,5 @@ public class Parameter<T> {
 
 	public void setCurrentValue(T currentValue) {
 		this.currentValue = currentValue;
-	}
-
-	/**
-	 * Sets the (new) current value for this property. In contrast to {@link #setCurrentValue(Object)} this version trys
-	 * to create the actual object out of the
-	 * 
-	 * @param value
-	 */
-	public void setCurrentValueAsString(String value) {
-		currentValue = im.getNewInstanceFor(fieldType, value);
 	}
 }

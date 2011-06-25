@@ -1,7 +1,8 @@
 package net.noratargo.siJACK.interfaces;
 
 import net.noratargo.siJACK.Configurator;
-import net.noratargo.siJACK.Parameter;
+import net.noratargo.siJACK.annotations.ConstructorDescription;
+import net.noratargo.siJACK.annotations.ParameterDescription;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -18,7 +19,15 @@ import java.lang.reflect.Field;
 public interface ParameterManager {
 
 	/**
+	 * Adds the specified field to the Collection of known fields.
+	 * <p>
+	 * A field may be revoked, if it does not match certain criterias (e.g. it has already been added, or it is not
+	 * annotated with a {@link ParameterDescription} annotation).
+	 * <p>
+	 * TODO: think about what to do, if a field is being revoked.
+	 * 
 	 * @param <T>
+	 *            The type of the default value.
 	 * @param f
 	 *            The field to add.
 	 * @param defaultValue
@@ -28,32 +37,64 @@ public interface ParameterManager {
 	public <T> void addField(Field f, T defaultValue);
 
 	/**
+	 * Adds the specified construcotr to the Collection of known constructors.
+	 * <p>
+	 * A constructor may be revoked, if it does not match certain criterias (e.g. it has already been added, or it is
+	 * not annotated with a {@link ConstructorDescription} annotation).
+	 * <p>
+	 * TODO: think about what to do, if a constructor is being revoked.
+	 * 
 	 * @param <T>
-	 * @param constr
+	 *            The type of the default value.
+	 * @param constructor
+	 *            The constructor to add.
 	 */
-	public <T> void addConstructor(Constructor<T> constr);
+	public <T> void addConstructor(Constructor<T> constructor);
 
 	/**
-	 * Applies the current configuration to all {@link Parameter} objects.
+	 * Tells the implementation, that configurations, that could not yet applied to (previously unknown) fields or
+	 * constructors should now be probed again.
 	 * <p>
-	 * This is supposed to be used for parameters, to which a value has been assigned to, but that have not yet been
-	 * added by the {@link #addParameter(Parameter)} method.
+	 * If the implementation does not support settings values for unknown fields or constructors, then this method
+	 * simply does nothing.
 	 */
 	public <T> void applyConfiguration();
 
 	/**
 	 * Returns the vlue for the given field.
+	 * <p>
+	 * If the given field has not yet been added to this manager, the implementation <b>should</b> add it to its
+	 * internal list of configureable fields and call {@link #applyConfiguration()}. If the implementation does not
+	 * whish to add the field to its internal collection, then it has to thrwo a {@link RuntimeException}.
+	 * <p>
+	 * If the given Field has no {@link ParameterDescription} annotation, a RuntimeExceptions has to be thrown.
 	 * 
-	 * @param f The field 
-	 * @return
+	 * @param f
+	 *            The field for that the configuration should be returned.
+	 * @return A new instance of the object, that is set as the current value for the given field. <code>null</code> may
+	 *         be returned, if that is the current value.
+	 * @throws RuntimeException
+	 *             if the given field is not annotated with the {@link ParameterDescription} annotation.
 	 */
-	public Object getValueFor(Field f);
+	public Object getValueFor(Field f) throws RuntimeException;
 
 	/**
 	 * Returns all known parameters for the given constructor.
+	 * <p>
+	 * If the constructor has not yet been aded to this nanager, the implementation <b>should</b> add it to its internal
+	 * list of configureable constructors and call {@link #applyConfiguration()}. If the implementation does not whish
+	 * to add the constructor to its internal collection, then it has to thrwo a {@link RuntimeException}.
+	 * <p>
+	 * If the constructor is not Annotated with a {@link ConstructorDescription}, a RuntimeException has to be thrown.
 	 * 
 	 * @param c
-	 * @return
+	 *            The field for that the configuration should be returned.
+	 * @return An array of new instances for the given constructor. The number of parameters must match the number of
+	 *         parameters of the given constructor. If the constructor has not parameters, an empty array has to be
+	 *         returned. Any element in the returned array may be <code>null</code>, if that is the current default
+	 *         value for the given Parameter.
+	 * @throws RuntimeException
+	 *             if the given constructor is not annotated with a {@link ConstructorDescription} annotation.
 	 */
 	public Object[] getValuesFor(Constructor<?> c);
 }

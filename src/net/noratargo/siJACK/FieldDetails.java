@@ -7,7 +7,7 @@ import net.noratargo.siJACK.interfaces.InstantiatorManager;
 import java.lang.reflect.Field;
 import java.util.Set;
 
-public class Parameter<T> {
+public class FieldDetails<T> {
 
 	/**
 	 * Stores the class, that is declaring this object.
@@ -54,7 +54,7 @@ public class Parameter<T> {
 	 *            a list of all class-based prefixes.
 	 */
 	@SuppressWarnings("unchecked")
-	public Parameter(Field f, T givenDefaultValue, InstantiatorManager im) {
+	public FieldDetails(Field f, T givenDefaultValue, InstantiatorManager im) {
 		/* enshure, that we may do a lot of fine stuff with this field: */
 		f.setAccessible(true);
 
@@ -96,8 +96,8 @@ public class Parameter<T> {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj instanceof Parameter<?>) {
-			Parameter<?> p = (Parameter<?>) obj;
+		if (obj instanceof FieldDetails<?>) {
+			FieldDetails<?> p = (FieldDetails<?>) obj;
 
 			return declaringClassName.equals(p.declaringClassName) && fieldName.equals(p.fieldName);
 		}

@@ -20,12 +20,12 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 	/**
 	 * Stores all parameters, grouped by declaring class and the field's name.
 	 */
-	private final DoubleHashMap<Class<?>, String, Parameter<?>> cfParameters;
+	private final DoubleHashMap<Class<?>, String, FieldDetails<?>> cfParameters;
 
 	/**
 	 * Stores all parameters, grouped by prefix and name. This is used for setting values.
 	 */
-	private final DoubleHashMap<String, String, Parameter<?>> pnParameters;
+	private final DoubleHashMap<String, String, FieldDetails<?>> pnParameters;
 
 	private final ArrayList<PrefixNameValueStorage> unsetValues;
 	
@@ -35,8 +35,8 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 		this.seperator = seperator;
 		this.im = im;
 		
-		cfParameters = new DoubleHashMap<Class<?>, String, Parameter<?>>();
-		pnParameters = new DoubleHashMap<String, String, Parameter<?>>();
+		cfParameters = new DoubleHashMap<Class<?>, String, FieldDetails<?>>();
+		pnParameters = new DoubleHashMap<String, String, FieldDetails<?>>();
 		unsetValues = new ArrayList<PrefixNameValueStorage>();
 	}
 
@@ -63,7 +63,7 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 	@Override
 	public <T> void setParameter(String prefix, String name, String value) {
 		@SuppressWarnings("unchecked")
-		Parameter<T> parameter = (Parameter<T>) pnParameters.get(prefix, name);
+		FieldDetails<T> parameter = (FieldDetails<T>) pnParameters.get(prefix, name);
 
 		if (parameter == null) {
 			/* store this change in a list... */
@@ -82,7 +82,7 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 			PrefixNameValueStorage unsetValue = iterator.next();
 			
 			@SuppressWarnings("unchecked")
-			Parameter<T> parameter = (Parameter<T>) pnParameters.get(unsetValue.prefix, unsetValue.name);
+			FieldDetails<T> parameter = (FieldDetails<T>) pnParameters.get(unsetValue.prefix, unsetValue.name);
 
 			if (parameter != null) {
 				/* Configure the parameter and remove the unsetValue (sinc eit now is set): */
@@ -94,7 +94,7 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 	
 	@Override
 	public Object getValueFor(Field f) {
-		Parameter<?> p = cfParameters.get(f.getDeclaringClass(), f.getName());
+		FieldDetails<?> p = cfParameters.get(f.getDeclaringClass(), f.getName());
 		
 		if (p == null) {
 			throw new NoSuchElementException("The given field is no known parameter: "+ f);
@@ -110,7 +110,7 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 	}
 	
 	@Override
-	public Set<Parameter<?>> getParameters() {
+	public Set<FieldDetails<?>> getParameters() {
 		return cfParameters.getValueSet();
 	}
 
@@ -134,7 +134,7 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 	@Override
 	public <T> void addField(Field f, T defaultValue) {
 		if (f.getAnnotation(ParameterDescription.class) != null) {
-			Parameter<T> p = new Parameter<T>(f, defaultValue, im);
+			FieldDetails<T> p = new FieldDetails<T>(f, defaultValue, im);
 			if (!cfParameters.contains(p.getDeclaringClassName(), p.getFieldName())) {
 				/* only insert the Parameter, if it is not added, yet. */
 				cfParameters.put(p.getDeclaringClassName(), p.getFieldName(), p);

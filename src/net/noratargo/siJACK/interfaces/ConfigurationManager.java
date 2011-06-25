@@ -1,6 +1,6 @@
 package net.noratargo.siJACK.interfaces;
 
-import net.noratargo.siJACK.Parameter;
+import net.noratargo.siJACK.FieldDetails;
 
 import java.util.Set;
 
@@ -25,5 +25,5 @@ public interface ConfigurationManager {
 	 * 
 	 * @return an immutable set of all currently defined Parameters. This set may be <b>immutable</b>.
 	 */
-	public Set<Parameter<?>> getParameters();
+	public Set<FieldDetails<?>> getParameters();
 }

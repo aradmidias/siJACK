@@ -3,7 +3,7 @@ package net.noratargo.siJACK;
 import static org.junit.Assert.*;
 import net.noratargo.siJACK.ConfigurationStorage;
 import net.noratargo.siJACK.Configurator;
-import net.noratargo.siJACK.Parameter;
+import net.noratargo.siJACK.FieldDetails;
 import net.noratargo.siJACK.ParameterPrefixNamePair;
 import net.noratargo.siJACK.interfaces.InstantiatorManager;
 import net.noratargo.siJACK.testClasses.AbstractParametrisedClass;
@@ -27,7 +27,7 @@ public class TestSuperclassAutoInitialisation {
 
 		c.applyConfiguration(vstc);
 
-		for (Parameter<?> p : cs.getParameters()) {
+		for (FieldDetails<?> p : cs.getParameters()) {
 			String s = p.getDefaultParameterPrefix() + cs.getPrefixNameSeperator() + p.getDefaultParameterName();
 //			System.out.println("TestSuperclassAutoInitialisation.testConfigurationStorage() c["+ s +"]  = "+ p.getCurrentValue());
 //			System.out.println("TestSuperclassAutoInitialisation.testConfigurationStorage() c["+ s +"] := "+ p.getDefaultValue());

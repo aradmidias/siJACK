@@ -29,7 +29,7 @@ public @interface FieldDescription {
 	
 	boolean doNotComplainAboutDefaultParameter() default false;
 
-	Name[] name() default @Name();
+	Name[] name() default @Name("");
 
 	/**
 	 * Defines the ParameterName element, that should be used as default. If -1 is given, then there will be no default

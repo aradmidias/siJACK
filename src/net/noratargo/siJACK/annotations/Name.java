@@ -32,7 +32,7 @@ public @interface Name {
 	 * 
 	 * @return
 	 */
-	String[] value() default {};
+	String[] value();
 
 	/**
 	 * Defines the value, that should be used as default.

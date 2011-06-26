@@ -1,5 +1,9 @@
 package net.noratargo.siJACK.testClasses;
 
+import java.io.File;
+import java.io.InputStream;
+import java.net.URL;
+
 import net.noratargo.siJACK.annotations.ConstructorDescription;
 import net.noratargo.siJACK.annotations.Name;
 import net.noratargo.siJACK.annotations.ParameterDescription;
@@ -10,42 +14,47 @@ public class ConstructorDescriberConstructableClass {
 	public Long l;
 	public Boolean b;
 
-	@ConstructorDescription(groupName = { "", "type a" })
+	@ConstructorDescription(groupName = "url")
 	public ConstructorDescriberConstructableClass(
-			@ParameterDescription(name = @Name({ "s", "string" }), defaultValue = "hallo") String s) {
-		this.s = s;
+			@ParameterDescription(description = "The URL object ot use for opening the pipe.", defaultValue = "", isDefaultValueNull = true, name = @Name("url")) URL url) {
+
 	}
 
-	@ConstructorDescription(groupName = { "", "type a" })
+	@ConstructorDescription(groupName = "url")
 	public ConstructorDescriberConstructableClass(
-			@ParameterDescription(name = @Name({ "l", "loadFactor" }), defaultValue = "515023112652") Long l,
-			@ParameterDescription(name = @Name({ "isDynamic" }), defaultValue = "true") boolean b) {
-		this.b = b;
-		this.l = l;
+			@ParameterDescription(defaultValue = "", name = @Name("url")) URL url,
+			@ParameterDescription(description = "The time to wait for the connection to open.", defaultValue = "1500", name = @Name("timeout")) long timeout) {
+
 	}
 
-	@Prefix()
-	@ConstructorDescription(groupName = { "", "type a" })
 	public ConstructorDescriberConstructableClass(
-			@ParameterDescription(name = @Name({ "s", "string" }), defaultValue = "hallo") String s,
-			@ParameterDescription(name = @Name({ "l" }), defaultValue = "9842196030", description = "I will not be affected by setting parameter \"loadFactor\"!") Long l) {
-		this.l = l;
-		this.s = s;
+			@ParameterDescription(description = "The host to connect to. May be a domain or subdomain as well as an IP address", defaultValue = "", name = @Name("host")) String host) {
+
 	}
 
-	@ConstructorDescription(groupName = { "", "type a" })
 	public ConstructorDescriberConstructableClass(
-			@ParameterDescription(name = @Name({ "s", "string" }), defaultValue = "hallo") String s,
-			@ParameterDescription(name = @Name({ "isDynamic" }), defaultValue = "true") boolean b) {
-		this.b = b;
-		this.s = s;
+			@ParameterDescription(description = "The host to connect to. May be a domain or subdomain as well as an IP address", defaultValue = "", name = @Name("host")) String host,
+			@ParameterDescription(description = "The port to connect to", defaultValue = "80", name = @Name("port")) int port) {
+
 	}
 
-	@ConstructorDescription(groupName = { "", "type a" })
 	public ConstructorDescriberConstructableClass(
-			@ParameterDescription(name = @Name({ "isDynamic" }), defaultValue = "true") boolean b,
-			@ParameterDescription(name = @Name({ "loadFactor" }), defaultValue = "51641012020", description = "i will not be changed by setting parameter \"l\"!") Long l) {
-		this.b = b;
-		this.l = l;
+			@ParameterDescription(description = "The host to connect to. May be a domain or subdomain as well as an IP address", defaultValue = "", name = @Name("host")) String host,
+			@ParameterDescription(description = "The port to connect to", defaultValue = "80", name = @Name("port")) int port,
+			@ParameterDescription(description = "The time to wait for the connection to open.", defaultValue = "1500", name = @Name("timeout")) long timeout) {
+
 	}
+
+	public ConstructorDescriberConstructableClass(
+			@ParameterDescription(description = "The host to connect to. May be a domain or subdomain as well as an IP address", defaultValue = "", name = @Name("host")) String host,
+			@ParameterDescription(description = "The time to wait for the connection to open.", defaultValue = "1500", name = @Name("timeout")) long timeout) {
+
+	}
+
+	@ConstructorDescription(groupName = "file")
+	public ConstructorDescriberConstructableClass(
+			@ParameterDescription(defaultValue = "", name = @Name("file")) File file) {
+
+	}
+
 }

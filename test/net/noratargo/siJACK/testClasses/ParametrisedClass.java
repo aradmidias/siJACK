@@ -1,9 +1,9 @@
 package net.noratargo.siJACK.testClasses;
 
-import net.noratargo.siJACK.annotations.ParameterDescription;
+import net.noratargo.siJACK.annotations.FieldDescription;
 
 public class ParametrisedClass extends AbstractParametrisedClass {
 
-	@ParameterDescription("This field will be added to the ConfigurationManager.")
+	@FieldDescription("This field will be added to the ConfigurationManager.")
 	public String subString = "unset as well";
 }

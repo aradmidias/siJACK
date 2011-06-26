@@ -1,7 +1,7 @@
 package net.noratargo.siJACK;
 
-import net.noratargo.siJACK.annotationHelper.ParameterDescriptionHelper;
-import net.noratargo.siJACK.annotations.ParameterDescription;
+import net.noratargo.siJACK.annotationHelper.FieldDescriptionHelper;
+import net.noratargo.siJACK.annotations.FieldDescription;
 import net.noratargo.siJACK.interfaces.InstantiatorManager;
 
 import java.lang.reflect.Field;
@@ -64,8 +64,8 @@ public class FieldDetails<T> {
 		fieldType = (Class<T>) f.getType();
 
 		/* we now have at least one prefix. Now let's get the Describing annotation: */
-		ParameterDescription paramDescription = f.getAnnotation(ParameterDescription.class);
-		description = ParameterDescriptionHelper.getDescription(paramDescription);
+		FieldDescription paramDescription = f.getAnnotation(FieldDescription.class);
+		description = FieldDescriptionHelper.getDescription(paramDescription);
 
 		/*
 		 * if f is not static and o is null, the @ParameterDescription annotation MUST have a defaultValue Section. In
@@ -74,16 +74,16 @@ public class FieldDetails<T> {
 		 */
 
 		/* try to determine the default value: */
-		defaultValue = ParameterDescriptionHelper.getDefaultValue(f, givenDefaultValue, paramDescription, im);
+		defaultValue = FieldDescriptionHelper.getDefaultValue(f, givenDefaultValue, paramDescription, im);
 
 		/* create the prefix and name pairs for this Parameter (and also try to obtain the default prefix and name): */
 
 		/* obtain the current Field's Prefix-annotation: */
-		ParameterPrefixNamePair defaultPrefixNamePair = ParameterDescriptionHelper.getDefaultPrefixNamePair(paramDescription, f);
+		ParameterPrefixNamePair defaultPrefixNamePair = FieldDescriptionHelper.getDefaultPrefixNamePair(paramDescription, f);
 		defaultParameterPrefix = defaultPrefixNamePair.getPrefix();
 		defaultParameterName = defaultPrefixNamePair.getName();
 
-		parameterNames = ParameterDescriptionHelper.getParameterPrefixNamePairSet(paramDescription, f);
+		parameterNames = FieldDescriptionHelper.getParameterPrefixNamePairSet(paramDescription, f);
 
 		/* now we have got a default value, so we can use it as it is: */
 		currentValue = defaultValue;

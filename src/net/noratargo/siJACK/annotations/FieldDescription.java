@@ -6,13 +6,16 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
-@Target(value={ElementType.PARAMETER})
-public @interface ParameterDescription {
+@Target(value={ElementType.FIELD, ElementType.LOCAL_VARIABLE})
+public @interface FieldDescription {
+
 	/**
 	 * Defines the comment being displayed, when
 	 * 
 	 * @return
 	 */
+	String value() default "";
+
 	String description() default "no description available";
 
 	/**
@@ -20,13 +23,13 @@ public @interface ParameterDescription {
 	 * 
 	 * @return A textual representation of this parameter's default value, which can be parsed into the actual class.
 	 */
-	String defaultValue();
+	String defaultValue() default "";
 	
 	boolean isDefaultValueNull() default false;
 	
 	boolean doNotComplainAboutDefaultParameter() default false;
 
-	Name[] name();
+	Name[] name() default @Name();
 
 	/**
 	 * Defines the ParameterName element, that should be used as default. If -1 is given, then there will be no default

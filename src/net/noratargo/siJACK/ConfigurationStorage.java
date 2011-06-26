@@ -1,6 +1,6 @@
 package net.noratargo.siJACK;
 
-import net.noratargo.siJACK.annotations.ParameterDescription;
+import net.noratargo.siJACK.annotations.FieldDescription;
 import net.noratargo.siJACK.interfaces.ConfigurationManager;
 import net.noratargo.siJACK.interfaces.InstantiatorManager;
 import net.noratargo.siJACK.interfaces.ParameterManager;
@@ -133,7 +133,7 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 
 	@Override
 	public <T> void addField(Field f, T defaultValue) {
-		if (f.getAnnotation(ParameterDescription.class) != null) {
+		if (f.getAnnotation(FieldDescription.class) != null) {
 			FieldDetails<T> p = new FieldDetails<T>(f, defaultValue, im);
 			if (!cfParameters.contains(p.getDeclaringClassName(), p.getFieldName())) {
 				/* only insert the Parameter, if it is not added, yet. */

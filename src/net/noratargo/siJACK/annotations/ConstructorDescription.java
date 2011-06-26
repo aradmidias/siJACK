@@ -15,12 +15,4 @@ public @interface ConstructorDescription {
 	 * @return
 	 */
 	String[] groupName() default "";
-
-	/**
-	 * Stores the description of every parameter. Note that you should always specify a default value, since it is not
-	 * possible, to obtain default values for a method's parameter (since you can not specify any)
-	 * 
-	 * @return
-	 */
-	ParameterDescription[] parameters() default {};
 }

@@ -13,7 +13,7 @@ import java.lang.annotation.RetentionPolicy;
  * @author HMulthaupt
  */
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ParameterName {
+public @interface Name {
 
 	/**
 	 * Define the Prefixes to use.

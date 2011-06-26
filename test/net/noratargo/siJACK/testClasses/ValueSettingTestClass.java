@@ -1,10 +1,10 @@
 package net.noratargo.siJACK.testClasses;
 
-import net.noratargo.siJACK.annotations.ParameterDescription;
+import net.noratargo.siJACK.annotations.FieldDescription;
 
 public class ValueSettingTestClass {
 
-	@ParameterDescription("description")
+	@FieldDescription("description")
 	public String name = "nobody";
 	
 	

@@ -1,8 +1,8 @@
 package net.noratargo.siJACK.annotationHelper;
 
 import net.noratargo.siJACK.ParameterPrefixNamePair;
-import net.noratargo.siJACK.annotations.ParameterDescription;
-import net.noratargo.siJACK.annotations.ParameterName;
+import net.noratargo.siJACK.annotations.FieldDescription;
+import net.noratargo.siJACK.annotations.Name;
 import net.noratargo.siJACK.annotations.Prefix;
 import net.noratargo.siJACK.interfaces.InstantiatorManager;
 
@@ -11,7 +11,7 @@ import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Set;
 
-public class ParameterDescriptionHelper {
+public class FieldDescriptionHelper {
 	
 	private static Prefix determineCurrentPrefix(Field f) {
 		Prefix prefix = f.getAnnotation(Prefix.class);
@@ -52,8 +52,8 @@ public class ParameterDescriptionHelper {
 		};
 	}
 
-	public static ParameterPrefixNamePair getDefaultPrefixNamePair(ParameterDescription pd, Field f) {
-		ParameterName[] index = pd.name();
+	public static ParameterPrefixNamePair getDefaultPrefixNamePair(FieldDescription pd, Field f) {
+		Name[] index = pd.name();
 		int defaultIndex = pd.defaultParameterNameIndex();
 		Class<?> declaringClass = f.getDeclaringClass();
 
@@ -67,7 +67,7 @@ public class ParameterDescriptionHelper {
 							+ defaultIndex + "\n" + "You must choose from a value IN [-1, " + (index.length - 1)
 							+ "] for " + declaringClass + "." + f.getName());
 		} else {
-			ParameterName i = index[defaultIndex];
+			Name i = index[defaultIndex];
 
 			/* try to finde the prefix: */
 			String def = getDefaultPrefix(i.prefix(), declaringClass, f);
@@ -109,7 +109,7 @@ public class ParameterDescriptionHelper {
 	 * @return The default name for the given field. If the returned Sting is an empty String (""), then there is no
 	 *         default name.
 	 */
-	private static String getDefaultName(ParameterName pm, Field f) {
+	private static String getDefaultName(Name pm, Field f) {
 		int defaultNameIndex = pm.defaultValue();
 
 		if (defaultNameIndex == -1) {
@@ -127,14 +127,14 @@ public class ParameterDescriptionHelper {
 		}
 	}
 
-	public static Set<ParameterPrefixNamePair> getParameterPrefixNamePairSet(ParameterDescription paramDescription, Field f) {
+	public static Set<ParameterPrefixNamePair> getParameterPrefixNamePairSet(FieldDescription paramDescription, Field f) {
 		HashSet<ParameterPrefixNamePair> parameterNames = new HashSet<ParameterPrefixNamePair>();
 
 		Prefix p = determineCurrentPrefix(f);
 		String declaringClassName = f.getDeclaringClass().getName();
 		
 		/* create the prefix-name-set: */
-		for (ParameterName pn : paramDescription.name()) {
+		for (Name pn : paramDescription.name()) {
 			/* stores all collected prefixes for later combindings. */
 			HashSet<String> prefixes = new HashSet<String>();
 
@@ -179,7 +179,7 @@ public class ParameterDescriptionHelper {
 	}
 
 	@SuppressWarnings("unchecked")
-	public static <T> T getDefaultValue(Field f, T givenDefaultValue, ParameterDescription paramDescription, InstantiatorManager im) {
+	public static <T> T getDefaultValue(Field f, T givenDefaultValue, FieldDescription paramDescription, InstantiatorManager im) {
 		if (givenDefaultValue != null) {
 			return im.getNewInstanceFrom(givenDefaultValue);
 		}
@@ -207,7 +207,7 @@ public class ParameterDescriptionHelper {
 		return im.getNewInstanceFor((Class<T>) f.getType(), value);
 	}
 	
-	public static String getDescription(ParameterDescription pd) {
+	public static String getDescription(FieldDescription pd) {
 		return "".equals(pd.value()) ? pd.description() : pd.value();
 	}
 }

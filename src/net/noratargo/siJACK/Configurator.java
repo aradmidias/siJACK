@@ -1,6 +1,6 @@
 package net.noratargo.siJACK;
 
-import net.noratargo.siJACK.annotations.ParameterDescription;
+import net.noratargo.siJACK.annotations.FieldDescription;
 import net.noratargo.siJACK.interfaces.ParameterManager;
 
 import java.lang.reflect.Constructor;
@@ -207,7 +207,7 @@ public class Configurator {
 	}
 
 	/**
-	 * Applies the configuration to all fields, as far as they are marked with the {@link ParameterDescription}
+	 * Applies the configuration to all fields, as far as they are marked with the {@link FieldDescription}
 	 * annotation.
 	 * 
 	 * @param o
@@ -221,7 +221,7 @@ public class Configurator {
 		}
 
 		for (Field f : c.getDeclaredFields()) {
-			if (f.getAnnotation(ParameterDescription.class) != null) {
+			if (f.getAnnotation(FieldDescription.class) != null) {
 				try {
 					f.setAccessible(true);
 					f.set(o, pm.getValueFor(f));

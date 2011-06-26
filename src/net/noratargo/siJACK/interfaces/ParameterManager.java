@@ -2,7 +2,7 @@ package net.noratargo.siJACK.interfaces;
 
 import net.noratargo.siJACK.Configurator;
 import net.noratargo.siJACK.annotations.ConstructorDescription;
-import net.noratargo.siJACK.annotations.ParameterDescription;
+import net.noratargo.siJACK.annotations.FieldDescription;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -22,7 +22,7 @@ public interface ParameterManager {
 	 * Adds the specified field to the Collection of known fields.
 	 * <p>
 	 * A field may be revoked, if it does not match certain criterias (e.g. it has already been added, or it is not
-	 * annotated with a {@link ParameterDescription} annotation).
+	 * annotated with a {@link FieldDescription} annotation).
 	 * <p>
 	 * TODO: think about what to do, if a field is being revoked.
 	 * 
@@ -67,14 +67,14 @@ public interface ParameterManager {
 	 * internal list of configureable fields and call {@link #applyConfiguration()}. If the implementation does not
 	 * whish to add the field to its internal collection, then it has to thrwo a {@link RuntimeException}.
 	 * <p>
-	 * If the given Field has no {@link ParameterDescription} annotation, a RuntimeExceptions has to be thrown.
+	 * If the given Field has no {@link FieldDescription} annotation, a RuntimeExceptions has to be thrown.
 	 * 
 	 * @param f
 	 *            The field for that the configuration should be returned.
 	 * @return A new instance of the object, that is set as the current value for the given field. <code>null</code> may
 	 *         be returned, if that is the current value.
 	 * @throws RuntimeException
-	 *             if the given field is not annotated with the {@link ParameterDescription} annotation.
+	 *             if the given field is not annotated with the {@link FieldDescription} annotation.
 	 */
 	public Object getValueFor(Field f) throws RuntimeException;
 

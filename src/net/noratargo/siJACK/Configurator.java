@@ -1,6 +1,5 @@
 package net.noratargo.siJACK;
 
-import net.noratargo.siJACK.annotations.FieldDescription;
 import net.noratargo.siJACK.interfaces.ParameterManager;
 
 import java.lang.reflect.Constructor;
@@ -221,7 +220,7 @@ public class Configurator {
 		}
 
 		for (Field f : c.getDeclaredFields()) {
-			if (f.getAnnotation(FieldDescription.class) != null) {
+			if (pm.hasField(f)) {
 				try {
 					f.setAccessible(true);
 					f.set(o, pm.getValueFor(f));

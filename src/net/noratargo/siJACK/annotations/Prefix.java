@@ -1,59 +1,44 @@
 package net.noratargo.siJACK.annotations;
 
+import net.noratargo.siJACK.annotationHelper.PrefixAnnotationHelper;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Specifies the prefixes to use for all fields of the annotated class or for the annotated field.
+ * This annotation can be used, to specifiy a list of prefixes.
  * <p>
- * Multiple prefixes may be given. If this is the case, the usage will only give out the first one. This feature is
- * supposed to be used, if a refactoring occured (so the arrangement of parameters changed) and older configurations
- * shall still be supported.
- * <p>
- * <p>
- * if neither
- * <p>
- * <p>
- * The default values make the full-qualified-classname to the default prefix. See: {@link #defaultValue()}.
+ * By default (if no annotation is given) the classes fully qualified class name will be used as prefix and as default
+ * prefix.
  * 
  * @author HMulthaupt
+ * @see PrefixAnnotationHelper
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.TYPE, ElementType.FIELD, ElementType.CONSTRUCTOR, ElementType.PARAMETER})
+@Target({ ElementType.TYPE, ElementType.FIELD, ElementType.CONSTRUCTOR, ElementType.PARAMETER })
 public @interface Prefix {
-
 	/**
-	 * The Prefix to prepend to all properties of the current class.
-	 * <p>
-	 * The first prefix will be treated as the up-to-date, default prefix (this is intresting for printing out help
-	 * about parameter-information, since only the default-prefix will be printed out). If this annotation annotates a
-	 * class and one of that classes field's has its own Prefix-parameter, then the field's-default Prefix takes
-	 * precednce and will be used instead of the classes default prefix.
-	 * <p>
-	 * If no prefix is given AND {@link #addFullQualifiedClassNameToPrefixList()} is false, then no prefix will be set.
-	 * <p>
-	 * TODO: currently there is no way to mix the class-name and primitive-strings. (i.e. to allow refactoring)
+	 * A List of prefixes.
 	 * 
-	 * @return The prefix.
+	 * @return
 	 */
-	String[] value() default {};
+	String[] value() default "";
 
 	/**
-	 * This adds the current fully-qualified-class-name to the list of prefixes, above - regardless of what has been
-	 * added there.
+	 * If <code>true</code>, then the classes full qualified name will be added to the parameter list.
+	 * 
+	 * @return
 	 */
-	boolean addFullQualifiedClassNameToPrefixList() default true;
+	boolean addClassPathToPrefixes() default true;
 
 	/**
-	 * Specifies the default value. The number must correspond to the element in the array above. Counting starts by 0.
-	 * The value -1 omits a default prefix (so there will be no default prefix).
-	 * <p>
-	 * If {@link #addFullQualifiedClassNameToPrefixList()} is true, then this will be added at the end of
-	 * {@link #value()}. Therefor, if you put three elements in {@link #value()} and set
-	 * {@link #addFullQualifiedClassNameToPrefixList()} to true, you can set this to 3, to mark the
-	 * full-qualified-classname as the default.
+	 * SPecifies, which of the given prefixes should be used. -1 specifies, that no prefix will be used. If the classes
+	 * fully qualified name should be used as default prefix, remember, that it will be added to the end of the list of
+	 * the prefixes.
+	 * 
+	 * @return
 	 */
 	int defaultValue() default 0;
 }

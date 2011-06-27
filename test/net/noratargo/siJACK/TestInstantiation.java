@@ -19,7 +19,7 @@ public class TestInstantiation {
 
 		c.addConfigureable(new ValueSettingTestClass());
 
-		cs.setParameter(ValueSettingTestClass.class.getName(), "name", "admin");
+		cs.setValue(ValueSettingTestClass.class.getName(), "name", "admin");
 		ValueSettingTestClass vstc = new ValueSettingTestClass();
 
 		c.applyConfiguration(vstc);
@@ -33,7 +33,7 @@ public class TestInstantiation {
 		ConfigurationStorage cs = new ConfigurationStorage(":", im);
 		Configurator c = new Configurator(cs);
 
-		cs.setParameter(ValueSettingTestClass.class.getName(), "name", "admin");
+		cs.setValue(ValueSettingTestClass.class.getName(), "name", "admin");
 		c.addConfigureable(new ValueSettingTestClass());
 		ValueSettingTestClass vstc = new ValueSettingTestClass();
 
@@ -47,12 +47,12 @@ public class TestInstantiation {
 		InstantiatorManager im = new InstantiatorStorage();
 		ConfigurationStorage cs = new ConfigurationStorage(":", im);
 		Configurator c = new Configurator(cs);
-		cs.setParameter("current preix:alternatePrefixParam", "prefix_");
+		cs.setValue("current preix:alternatePrefixParam", "prefix_");
 
 		c.addConfigureable(AlternatePrefixTestClass.class);
 
-		cs.setParameter("some.other.package.path:dateiname", "/etc/fstab");
-		cs.setParameter("some.other.package.path:username", "root");
+		cs.setValue("some.other.package.path:dateiname", "/etc/fstab");
+		cs.setValue("some.other.package.path:username", "root");
 
 		AlternatePrefixTestClass iwp = new AlternatePrefixTestClass();
 

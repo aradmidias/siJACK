@@ -1,15 +1,15 @@
 package net.noratargo.siJACK.testClasses;
 
-import net.noratargo.siJACK.annotations.FieldDescription;
+import net.noratargo.siJACK.annotations.Description;
 
 public class ParameterApplyingTestClass {
 
-	@FieldDescription
+	@Description("")
 	public Class<Long> c = Long.class;
 
-	@FieldDescription
+	@Description("")
 	public long longValue = 10L;
 
-	@FieldDescription
+	@Description("")
 	public int intValue = 234123;
 }

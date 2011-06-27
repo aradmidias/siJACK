@@ -1,8 +1,6 @@
 package net.noratargo.siJACK.interfaces;
 
 import net.noratargo.siJACK.Configurator;
-import net.noratargo.siJACK.annotations.ConstructorDescription;
-import net.noratargo.siJACK.annotations.FieldDescription;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -97,4 +95,13 @@ public interface ParameterManager {
 	 *             if the given constructor is not annotated with a {@link ConstructorDescription} annotation.
 	 */
 	public Object[] getValuesFor(Constructor<?> c);
+
+	/**
+	 * Returns <code>true</code>, if the given Field is known and a value can be returned for it - even if that value
+	 * will then be <code>null</code>
+	 * 
+	 * @param f
+	 * @return
+	 */
+	public boolean hasField(Field f);
 }

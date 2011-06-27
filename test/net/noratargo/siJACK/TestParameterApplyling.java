@@ -17,9 +17,9 @@ public class TestParameterApplyling {
 		Configurator c = new Configurator(cs);
 		c.addConfigureable(ParameterApplyingTestClass.class);
 
-		cs.setParameter(ParameterApplyingTestClass.class.getName() + cs.getPrefixNameSeperator() + "c", "java.lang.Long");
-		cs.setParameter(ParameterApplyingTestClass.class.getName() + cs.getPrefixNameSeperator() + "longValue", "357951");
-		cs.setParameter(ParameterApplyingTestClass.class.getName() + cs.getPrefixNameSeperator() + "intValue", "24685");
+		cs.setValue(ParameterApplyingTestClass.class.getName() + cs.getPrefixNameSeperator() + "c", "java.lang.Long");
+		cs.setValue(ParameterApplyingTestClass.class.getName() + cs.getPrefixNameSeperator() + "longValue", "357951");
+		cs.setValue(ParameterApplyingTestClass.class.getName() + cs.getPrefixNameSeperator() + "intValue", "24685");
 
 		ParameterApplyingTestClass patc = new ParameterApplyingTestClass();
 

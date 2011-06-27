@@ -1,13 +1,13 @@
 package net.noratargo.siJACK;
 
-import net.noratargo.siJACK.annotationHelper.FieldDescriptionHelper;
+import net.noratargo.siJACK.annotationHelper.Orig_FieldDescriptionHelper;
 import net.noratargo.siJACK.annotations.FieldDescription;
 import net.noratargo.siJACK.interfaces.InstantiatorManager;
 
 import java.lang.reflect.Field;
 import java.util.Set;
 
-public class FieldDetails<T> {
+public class Orig_FieldDetails<T> {
 
 	/**
 	 * Stores the class, that is declaring this object.
@@ -54,7 +54,7 @@ public class FieldDetails<T> {
 	 *            a list of all class-based prefixes.
 	 */
 	@SuppressWarnings("unchecked")
-	public FieldDetails(Field f, T givenDefaultValue, InstantiatorManager im) {
+	public Orig_FieldDetails(Field f, T givenDefaultValue, InstantiatorManager im) {
 		/* enshure, that we may do a lot of fine stuff with this field: */
 		f.setAccessible(true);
 
@@ -65,7 +65,7 @@ public class FieldDetails<T> {
 
 		/* we now have at least one prefix. Now let's get the Describing annotation: */
 		FieldDescription paramDescription = f.getAnnotation(FieldDescription.class);
-		description = FieldDescriptionHelper.getDescription(paramDescription);
+		description = Orig_FieldDescriptionHelper.getDescription(paramDescription);
 
 		/*
 		 * if f is not static and o is null, the @ParameterDescription annotation MUST have a defaultValue Section. In
@@ -74,16 +74,16 @@ public class FieldDetails<T> {
 		 */
 
 		/* try to determine the default value: */
-		defaultValue = FieldDescriptionHelper.getDefaultValue(f, givenDefaultValue, paramDescription, im);
+		defaultValue = Orig_FieldDescriptionHelper.getDefaultValue(f, givenDefaultValue, paramDescription, im);
 
 		/* create the prefix and name pairs for this Parameter (and also try to obtain the default prefix and name): */
 
 		/* obtain the current Field's Prefix-annotation: */
-		ParameterPrefixNamePair defaultPrefixNamePair = FieldDescriptionHelper.getDefaultPrefixNamePair(paramDescription, f);
+		ParameterPrefixNamePair defaultPrefixNamePair = Orig_FieldDescriptionHelper.getDefaultPrefixNamePair(paramDescription, f);
 		defaultParameterPrefix = defaultPrefixNamePair.getPrefix();
 		defaultParameterName = defaultPrefixNamePair.getName();
 
-		parameterNames = FieldDescriptionHelper.getParameterPrefixNamePairSet(paramDescription, f);
+		parameterNames = Orig_FieldDescriptionHelper.getParameterPrefixNamePairSet(paramDescription, f);
 
 		/* now we have got a default value, so we can use it as it is: */
 		currentValue = defaultValue;
@@ -96,8 +96,8 @@ public class FieldDetails<T> {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj instanceof FieldDetails<?>) {
-			FieldDetails<?> p = (FieldDetails<?>) obj;
+		if (obj instanceof Orig_FieldDetails<?>) {
+			Orig_FieldDetails<?> p = (Orig_FieldDetails<?>) obj;
 
 			return declaringClassName.equals(p.declaringClassName) && fieldName.equals(p.fieldName);
 		}

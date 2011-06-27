@@ -1,7 +1,7 @@
 package net.noratargo.siJACK;
 
+import net.noratargo.siJACK.annotations.DefaultValue;
 import net.noratargo.siJACK.annotations.Name;
-import net.noratargo.siJACK.annotations.ParameterDescription;
 import net.noratargo.siJACK.annotations.Prefix;
 
 import java.lang.annotation.Annotation;
@@ -15,14 +15,14 @@ import java.lang.reflect.TypeVariable;
  */
 public class ParameterAnnotationTestClass {
 
-	public ParameterAnnotationTestClass(@ParameterDescription(defaultValue = "0", name=@Name("p1")) int p1, int p2,
-			@ParameterDescription(defaultValue = "0", name=@Name("p3")) int p3) {
+	public ParameterAnnotationTestClass(@DefaultValue("0") @Name("p1") int p1, int p2,
+			@DefaultValue("0")@Name("p3") int p3) {
 		// TODO Auto-generated constructor stub
 	}
 
-	public <T> ParameterAnnotationTestClass(@ParameterDescription(defaultValue = "0", name=@Name("p1")) long p1,
-			@Prefix("foo") @ParameterDescription(defaultValue = "0", name=@Name("p2")) int p2,
-			@ParameterDescription(defaultValue = "0", name=@Name("p3")) int p3, T x, String s) {
+	public <T> ParameterAnnotationTestClass(@DefaultValue("0") @Name("p1") long p1,
+			@Prefix("foo") @DefaultValue("0") @Name("p2") int p2,
+			@DefaultValue("0") @Name("p3") int p3, T x, String s) {
 		// TODO Auto-generated constructor stub
 	}
 

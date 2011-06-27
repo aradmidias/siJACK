@@ -11,7 +11,7 @@ import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Set;
 
-public class FieldDescriptionHelper {
+public class Orig_FieldDescriptionHelper {
 	
 	private static Prefix determineCurrentPrefix(Field f) {
 		Prefix prefix = f.getAnnotation(Prefix.class);
@@ -46,7 +46,7 @@ public class FieldDescriptionHelper {
 			}
 
 			@Override
-			public boolean addFullQualifiedClassNameToPrefixList() {
+			public boolean addClassPathToPrefixes() {
 				return add;
 			}
 		};
@@ -91,39 +91,15 @@ public class FieldDescriptionHelper {
 		if (defaultPrefixIndex == -1) {
 			return null;
 		} else if (defaultPrefixIndex < -1
-				|| (p.addFullQualifiedClassNameToPrefixList() ? defaultPrefixIndex > p.value().length
+				|| (p.addClassPathToPrefixes() ? defaultPrefixIndex > p.value().length
 						: defaultPrefixIndex >= p.value().length)) {
 			throw new IndexOutOfBoundsException(
 					"the index you specified is either too small or too large. There is no element with the index "
 							+ defaultPrefixIndex + "\n" + "You must choose from a value IN [-1, "
-							+ (p.value().length - (p.addFullQualifiedClassNameToPrefixList() ? 0 : 1)) + "] for "
+							+ (p.value().length - (p.addClassPathToPrefixes() ? 0 : 1)) + "] for "
 							+ f.getDeclaringClass() + "." + f.getName());
 		} else {
 			return defaultPrefixIndex == p.value().length ? c.getName() : p.value()[defaultPrefixIndex];
-		}
-	}
-
-	/**
-	 * @param pm
-	 * @param c
-	 * @return The default name for the given field. If the returned Sting is an empty String (""), then there is no
-	 *         default name.
-	 */
-	private static String getDefaultName(Name pm, Field f) {
-		int defaultNameIndex = pm.defaultValue();
-
-		if (defaultNameIndex == -1) {
-			return "";
-		} else if (defaultNameIndex < -1
-				|| (pm.addFieldNameToValues() ? defaultNameIndex > pm.value().length
-						: defaultNameIndex >= pm.value().length)) {
-			throw new IndexOutOfBoundsException(
-					"the index you specified is either too small or too large. There is no element with the index "
-							+ defaultNameIndex + "\n" + "You must choose from a value IN [-1, "
-							+ (pm.value().length - (pm.addFieldNameToValues() ? 0 : 1)) + "] for " + f.getDeclaringClass()
-							+ "." + f.getName());
-		} else {
-			return defaultNameIndex == pm.value().length ? f.getName() : pm.value()[defaultNameIndex];
 		}
 	}
 

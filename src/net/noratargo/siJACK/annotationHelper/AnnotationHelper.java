@@ -8,10 +8,10 @@ import net.noratargo.siJACK.annotations.Name;
 import net.noratargo.siJACK.annotations.Prefix;
 import net.noratargo.siJACK.interfaces.InstantiatorManager;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 public class AnnotationHelper {
@@ -20,7 +20,7 @@ public class AnnotationHelper {
 	public static <T> Parameter<T> createParameter(Field f, T defaultValue, InstantiatorManager im) {
 		/* Determine default prefix: */
 		String defaultPrefix = PrefixAnnotationHelper.getDefaultPrefix(f.getDeclaringClass()
-				.getAnnotation(Prefix.class), f.getAnnotation(Prefix.class), null, f);
+				.getAnnotation(Prefix.class), f.getAnnotation(Prefix.class), f);
 
 		/* Determine default name: */
 		String defaultName = NameAnnotationHelper.getDefaultName(f.getAnnotation(Name.class), f);
@@ -28,10 +28,8 @@ public class AnnotationHelper {
 		/* Determine default value: */
 		defaultValue = getDefaultValue(defaultValue, (Class<T>) f.getType(), f.getAnnotation(DefaultValue.class), im);
 
-		// TODO: Determine all PrefixName pairs.
-		Set<ParameterPrefixNamePair> ppnp = new HashSet<ParameterPrefixNamePair>();
-		
-		
+		/* Determine all PrefixName pairs: */
+		Set<ParameterPrefixNamePair> ppnp = getParameterPrefixPairs(PrefixAnnotationHelper.fillPrefixes(f), NameAnnotationHelper.fillNames(f));
 
 		/* Get the description: */
 		String description = getDescription(f.getAnnotation(Description.class));
@@ -40,10 +38,85 @@ public class AnnotationHelper {
 		return new Parameter<T>(defaultValue, (Class<T>) f.getType(), ppnp, defaultPrefix, defaultName, description);
 	}
 
-	public static List<Parameter<?>> createParametersFromConstructor(Constructor<?> c, InstantiatorManager im) {
-		return null;
+	/**
+	 * Returns a list of parameters, that represent the current Constructor's parameters.
+	 * 
+	 * @param c
+	 *            The constructor to represent.
+	 * @param im
+	 *            The {@link InstantiatorManager} to use for determining the default values.
+	 * @return A list in which every element represents one parameter of the current constructor. The order of the elements is equal to the order of the constructor's parameters.
+	 */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public static Parameter<?>[] createParametersFromConstructor(Constructor<?> c, InstantiatorManager im) {
+		Parameter<?>[] parameters = new Parameter<?>[c.getParameterTypes().length];
+		Annotation[][] pAnnotations = c.getParameterAnnotations();
+		Class<?>[] cTypes = c.getParameterTypes();
+
+		for (int i = 0; i < parameters.length; i++) {
+			/* this represents all annotations of the current parameter: */
+			Annotation[] annotations = pAnnotations[i];
+			
+			Prefix p = null;
+			Name n = null;
+			DefaultValue dv = null;
+			Description des = null;
+			
+			for (Annotation a : annotations) {
+				if (a instanceof Prefix) {
+					p = (Prefix) a;
+				} else if (a instanceof Name) {
+					n = (Name) a;
+				} else if (a instanceof DefaultValue) {
+					dv = (DefaultValue) a;
+				} else if (a instanceof Description) {
+					des = (Description) a;
+				} else {
+					/* no annotation, that we support here. */
+				}
+			}
+
+			/* this is the current parameter's type: */
+			Class<?> type = cTypes[i];
+			
+			/* we got the annotations. so let's put them together. */
+
+			/* Determine default prefix: */
+			String defaultPrefix = PrefixAnnotationHelper.getDefaultPrefix(c.getDeclaringClass()
+					.getAnnotation(Prefix.class), c.getAnnotation(Prefix.class), p, c, i);
+
+			/* Determine default name: */
+			String defaultName = NameAnnotationHelper.getDefaultName(n, c, i);
+
+			/* Determine default value: */
+			Object defaultValue = getDefaultValue(null, type, dv, im);
+
+			/* Determine all PrefixName pairs: */
+			Set<ParameterPrefixNamePair> ppnp = getParameterPrefixPairs(PrefixAnnotationHelper.fillPrefixes(c, p), NameAnnotationHelper.fillNames(n));
+
+			/* Get the description: */
+			String description = getDescription(des);
+
+			/* Create and return the Parameter: */
+			parameters[i] = new Parameter(defaultValue, type, ppnp, defaultPrefix, defaultName, description);
+		}
+		
+		return parameters;
 	}
 
+	private static Set<ParameterPrefixNamePair> getParameterPrefixPairs(Set<String> prefixes, Set<String> names) {
+		Set<ParameterPrefixNamePair> ppnp = new HashSet<ParameterPrefixNamePair>();
+		
+		/* build all possible prefix-name constellations, that are posible: */
+		for (String prefix : prefixes) {
+			for (String name : names) {
+				ppnp.add(new ParameterPrefixNamePair(prefix, name));
+			}
+		}
+
+		return ppnp;
+	}
+	
 	/**
 	 * Returns the description from the given annotation or an empty String (""), if the annotation is not set.
 	 * 

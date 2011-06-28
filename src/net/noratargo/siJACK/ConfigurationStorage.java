@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
@@ -25,7 +24,7 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 	 */
 	private final HashMap<Field, Parameter<?>> fpParameters;
 
-	private final HashMap<Constructor<?>, List<Parameter<?>>> cpParameters;
+	private final HashMap<Constructor<?>, Parameter<?>[]> cpParameters;
 
 	/**
 	 * Stores all parameters, grouped by prefix and name. This is used for setting values.
@@ -41,7 +40,7 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 		this.im = im;
 
 		fpParameters = new HashMap<Field, Parameter<?>>();
-		cpParameters = new HashMap<Constructor<?>, List<Parameter<?>>>();
+		cpParameters = new HashMap<Constructor<?>, Parameter<?>[]>();
 		pnParameters = new DoubleHashMap<String, String, Set<Parameter<?>>>();
 		unsetValues = new ArrayList<PrefixNameValueStorage>();
 	}
@@ -136,7 +135,7 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 	@Override
 	public <T> void addConstructor(Constructor<T> constr) {
 		if (!cpParameters.containsKey(constr)) {
-			List<Parameter<?>> parameters = AnnotationHelper.createParametersFromConstructor(constr, im);
+			Parameter<?>[] parameters = AnnotationHelper.createParametersFromConstructor(constr, im);
 
 			if (parameters != null) {
 				cpParameters.put(constr, parameters);
@@ -167,9 +166,9 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 
 	@Override
 	public Object[] getValuesFor(Constructor<?> c) {
-		List<Parameter<?>> pList = cpParameters.get(c);
+		Parameter<?>[] pList = cpParameters.get(c);
 		
-		Object[] o = new Object[pList.size()];
+		Object[] o = new Object[pList.length];
 		int i = 0;
 		
 		for (Parameter<?> p : pList) {

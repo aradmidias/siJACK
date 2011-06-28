@@ -1,10 +1,6 @@
 package net.noratargo.siJACK;
 
 import static org.junit.Assert.*;
-import net.noratargo.siJACK.ConfigurationStorage;
-import net.noratargo.siJACK.Configurator;
-import net.noratargo.siJACK.Orig_FieldDetails;
-import net.noratargo.siJACK.ParameterPrefixNamePair;
 import net.noratargo.siJACK.interfaces.InstantiatorManager;
 import net.noratargo.siJACK.testClasses.AbstractParametrisedClass;
 import net.noratargo.siJACK.testClasses.ParametrisedClass;

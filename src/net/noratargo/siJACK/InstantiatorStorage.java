@@ -37,7 +37,7 @@ public class InstantiatorStorage implements InstantiatorManager {
 	@SuppressWarnings("unchecked")
 	@Override
 	public <T> T getNewInstanceFrom(T originalObject) {
-		return getInstanciator((Class<T>) originalObject.getClass()).createNewInstance(originalObject);
+		return originalObject == null ? null : getInstanciator((Class<T>) originalObject.getClass()).createNewInstance(originalObject);
 	}
 
 	@SuppressWarnings("unchecked")

@@ -67,15 +67,19 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 
 	@Override
 	public <T> void setValue(String prefix, String name, String value) {
-		@SuppressWarnings("unchecked")
-		Parameter<T> parameter = (Parameter<T>) pnParameters.get(prefix, name);
+		Set<Parameter<?>> parameters = pnParameters.get(prefix, name);
 
-		if (parameter == null) {
+		if (parameters == null) {
 			/* store this change in a list... */
 			unsetValues.add(new PrefixNameValueStorage(prefix, name, value));
 		} else {
 			/* Configure the parameter: */
-			parameter.setCurrentValue(im.getNewInstanceFor(parameter.getValueClassType(), value));
+			for (Parameter<?> param : parameters) {
+				@SuppressWarnings("unchecked")
+				Parameter<T> p = (Parameter<T>) param;
+				p.setCurrentValue(im.getNewInstanceFor(p.getValueClassType(), value));
+				
+			}
 		}
 	}
 
@@ -86,13 +90,16 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 		while (iterator.hasNext()) {
 			PrefixNameValueStorage unsetValue = iterator.next();
 
-			@SuppressWarnings("unchecked")
-			Parameter<T> parameter = (Parameter<T>) pnParameters.get(unsetValue.prefix, unsetValue.name);
+			Set<Parameter<?>> parameters = pnParameters.get(unsetValue.prefix, unsetValue.name);
 
-			if (parameter != null) {
+			if (parameters != null) {
 				/* Configure the parameter and remove the unsetValue (sinc eit now is set): */
-				parameter.setCurrentValue(im.getNewInstanceFor(parameter.getValueClassType(), unsetValue.value));
-				iterator.remove();
+				for (Parameter<?> param : parameters) {
+					@SuppressWarnings("unchecked")
+					Parameter<T> p = (Parameter<T>) param;
+					p.setCurrentValue(im.getNewInstanceFor(p.getValueClassType(), unsetValue.value));
+					
+				}
 			}
 		}
 	}

@@ -29,7 +29,8 @@ public class AnnotationHelper {
 		defaultValue = getDefaultValue(defaultValue, (Class<T>) f.getType(), f.getAnnotation(DefaultValue.class), im);
 
 		/* Determine all PrefixName pairs: */
-		Set<ParameterPrefixNamePair> ppnp = getParameterPrefixPairs(PrefixAnnotationHelper.fillPrefixes(f), NameAnnotationHelper.fillNames(f));
+		Set<ParameterPrefixNamePair> ppnp = getParameterPrefixPairs(PrefixAnnotationHelper.fillPrefixes(f),
+				NameAnnotationHelper.fillNames(f));
 
 		/* Get the description: */
 		String description = getDescription(f.getAnnotation(Description.class));
@@ -45,7 +46,9 @@ public class AnnotationHelper {
 	 *            The constructor to represent.
 	 * @param im
 	 *            The {@link InstantiatorManager} to use for determining the default values.
-	 * @return A list in which every element represents one parameter of the current constructor. The order of the elements is equal to the order of the constructor's parameters.
+	 * @return A list in which every element represents one parameter of the current constructor. The order of the
+	 *         elements is equal to the order of the constructor's parameters. rturns <code>null</code>, if this
+	 *         constructor should be avoided.
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public static Parameter<?>[] createParametersFromConstructor(Constructor<?> c, InstantiatorManager im) {
@@ -53,15 +56,17 @@ public class AnnotationHelper {
 		Annotation[][] pAnnotations = c.getParameterAnnotations();
 		Class<?>[] cTypes = c.getParameterTypes();
 
+		boolean skipThisOne = true;
+
 		for (int i = 0; i < parameters.length; i++) {
 			/* this represents all annotations of the current parameter: */
 			Annotation[] annotations = pAnnotations[i];
-			
+
 			Prefix p = null;
 			Name n = null;
 			DefaultValue dv = null;
 			Description des = null;
-			
+
 			for (Annotation a : annotations) {
 				if (a instanceof Prefix) {
 					p = (Prefix) a;
@@ -76,37 +81,42 @@ public class AnnotationHelper {
 				}
 			}
 
-			/* this is the current parameter's type: */
-			Class<?> type = cTypes[i];
-			
-			/* we got the annotations. so let's put them together. */
+			if (p != null || n != null || dv != null || des != null) {
+				skipThisOne = false;
 
-			/* Determine default prefix: */
-			String defaultPrefix = PrefixAnnotationHelper.getDefaultPrefix(c.getDeclaringClass()
-					.getAnnotation(Prefix.class), c.getAnnotation(Prefix.class), p, c, i);
+				/* this is the current parameter's type: */
+				Class<?> type = cTypes[i];
 
-			/* Determine default name: */
-			String defaultName = NameAnnotationHelper.getDefaultName(n, c, i);
+				/* we got the annotations. so let's put them together. */
 
-			/* Determine default value: */
-			Object defaultValue = getDefaultValue(null, type, dv, im);
+				/* Determine default prefix: */
+				String defaultPrefix = PrefixAnnotationHelper.getDefaultPrefix(
+						c.getDeclaringClass().getAnnotation(Prefix.class), c.getAnnotation(Prefix.class), p, c, i);
 
-			/* Determine all PrefixName pairs: */
-			Set<ParameterPrefixNamePair> ppnp = getParameterPrefixPairs(PrefixAnnotationHelper.fillPrefixes(c, p), NameAnnotationHelper.fillNames(n));
+				/* Determine default name: */
+				String defaultName = NameAnnotationHelper.getDefaultName(n, c, i);
 
-			/* Get the description: */
-			String description = getDescription(des);
+				/* Determine default value: */
+				Object defaultValue = getDefaultValue(null, type, dv, im);
 
-			/* Create and return the Parameter: */
-			parameters[i] = new Parameter(defaultValue, type, ppnp, defaultPrefix, defaultName, description);
+				/* Determine all PrefixName pairs: */
+				Set<ParameterPrefixNamePair> ppnp = getParameterPrefixPairs(PrefixAnnotationHelper.fillPrefixes(c, p),
+						NameAnnotationHelper.fillNames(n));
+
+				/* Get the description: */
+				String description = getDescription(des);
+
+				/* Create and return the Parameter: */
+				parameters[i] = new Parameter(defaultValue, type, ppnp, defaultPrefix, defaultName, description);
+			}
 		}
-		
-		return parameters;
+
+		return skipThisOne ? null : parameters;
 	}
 
 	private static Set<ParameterPrefixNamePair> getParameterPrefixPairs(Set<String> prefixes, Set<String> names) {
 		Set<ParameterPrefixNamePair> ppnp = new HashSet<ParameterPrefixNamePair>();
-		
+
 		/* build all possible prefix-name constellations, that are posible: */
 		for (String prefix : prefixes) {
 			for (String name : names) {
@@ -116,7 +126,7 @@ public class AnnotationHelper {
 
 		return ppnp;
 	}
-	
+
 	/**
 	 * Returns the description from the given annotation or an empty String (""), if the annotation is not set.
 	 * 

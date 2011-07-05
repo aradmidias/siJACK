@@ -11,32 +11,62 @@ import net.noratargo.siJACK.interfaces.InstantiatorManager;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.HashSet;
 import java.util.Set;
 
 public class AnnotationHelper {
 
+	/**
+	 * Creates a {@link Parameter} object for the given {@link Field}, if at least one of the folowing attributes is
+	 * present: {@link Description}, {@link Prefix}, {@link Name}, {@link DefaultValue}.
+	 * 
+	 * @param <T>
+	 *            The type of the default value, that the returned Parameter will represent.
+	 * @param f
+	 *            The field for that this Parameter will be.
+	 * @param defaultValue
+	 *            The default value of the given field. May be <code>null</code> if it is not given.
+	 * @param im
+	 *            The manager to use for creating a new instance, if a {@link DefaultValue} annotation is present.
+	 * @return The Parameter for the given Field, or <code>null</code> if this Field is missing the required
+	 *         annotations.
+	 */
 	@SuppressWarnings("unchecked")
 	public static <T> Parameter<T> createParameter(Field f, T defaultValue, InstantiatorManager im) {
-		/* Determine default prefix: */
-		String defaultPrefix = PrefixAnnotationHelper.getDefaultPrefix(f.getDeclaringClass()
-				.getAnnotation(Prefix.class), f.getAnnotation(Prefix.class), f);
 
-		/* Determine default name: */
-		String defaultName = NameAnnotationHelper.getDefaultName(f.getAnnotation(Name.class), f);
+		/* obtain all intresting annotations. if none of them is set, then we will skip this field and return null. */
+		Prefix fieldPrefix = f.getAnnotation(Prefix.class);
+		Name name = f.getAnnotation(Name.class);
+		DefaultValue defaultValueAnnotation = f.getAnnotation(DefaultValue.class);
+		Description description = f.getAnnotation(Description.class);
 
-		/* Determine default value: */
-		defaultValue = getDefaultValue(defaultValue, (Class<T>) f.getType(), f.getAnnotation(DefaultValue.class), im);
+		/* The field must not be final and at least one of the previously requested annotations MUST BE present. */
+		if (!Modifier.isFinal(f.getModifiers())
+				&& (fieldPrefix != null || name != null || defaultValueAnnotation != null || description != null)) {
+			/* Determine default prefix: */
+			String defaultPrefix = PrefixAnnotationHelper.getDefaultPrefix(
+					f.getDeclaringClass().getAnnotation(Prefix.class), fieldPrefix, f);
 
-		/* Determine all PrefixName pairs: */
-		Set<ParameterPrefixNamePair> ppnp = getParameterPrefixPairs(PrefixAnnotationHelper.fillPrefixes(f),
-				NameAnnotationHelper.fillNames(f));
+			/* Determine default name: */
+			String defaultName = NameAnnotationHelper.getDefaultName(name, f);
 
-		/* Get the description: */
-		String description = getDescription(f.getAnnotation(Description.class));
+			/* Determine default value: */
+			defaultValue = getDefaultValue(defaultValue, (Class<T>) f.getType(), defaultValueAnnotation, im);
 
-		/* Create and return the Parameter: */
-		return new Parameter<T>(defaultValue, (Class<T>) f.getType(), ppnp, defaultPrefix, defaultName, description);
+			/* Determine all PrefixName pairs: */
+			Set<ParameterPrefixNamePair> ppnp = getParameterPrefixPairs(PrefixAnnotationHelper.fillPrefixes(f),
+					NameAnnotationHelper.fillNames(f));
+
+			/* Get the description: */
+			String descriptionStr = getDescription(description);
+
+			/* Create and return the Parameter: */
+			return new Parameter<T>(defaultValue, (Class<T>) f.getType(), ppnp, defaultPrefix, defaultName,
+					descriptionStr);
+		}
+
+		return null;
 	}
 
 	/**

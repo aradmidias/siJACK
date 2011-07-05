@@ -4,6 +4,10 @@ import net.noratargo.siJACK.interfaces.ParameterManager;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Modifier;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Manages the configuration for the various elements.
@@ -13,6 +17,8 @@ import java.lang.reflect.Field;
 public class Configurator {
 
 	private ParameterManager pm;
+
+	private Set<Class<?>> knownClasses;
 
 	/**
 	 * Creates a new Configurator, using the given {@link ParameterManager}.
@@ -26,13 +32,14 @@ public class Configurator {
 		}
 
 		this.pm = pm;
+		knownClasses = new HashSet<Class<?>>();
 	}
 
 	/**
 	 * Adds the given object to the ParameterManager, so that its fields and constructors can be configured.
 	 * 
 	 * @param <T>
-	 *            The  type of the object, being created.
+	 *            The type of the object, being created.
 	 * @param classInstance
 	 *            The object, that can be configured. The default values for the parameters will be taken from this
 	 *            object.
@@ -49,18 +56,39 @@ public class Configurator {
 	 * This method will fail, if there is no parameterless constructor, to use for initialisation.
 	 * 
 	 * @param <T>
-	 *            The  type of the object, being created.
+	 *            The type of the object, being created.
 	 * @param c
 	 *            The class to add.
 	 */
 	public <T> void addConfigureable(Class<T> c) {
+		T instance = null;
+
 		try {
-			addConfigureable(c, c.newInstance());
+			/*
+			 * try to create a new instance. If this fails (e.g. because c is an instance of Class<?>, then we still got
+			 * the empty
+			 */
+			Constructor<T> constructor = c.getConstructor();
+
+			if (constructor != null) {
+				constructor.setAccessible(true);
+				instance = constructor.newInstance();
+			}
 		} catch (InstantiationException e) {
 			e.printStackTrace();
 		} catch (IllegalAccessException e) {
 			e.printStackTrace();
+		} catch (SecurityException e) {
+			e.printStackTrace();
+		} catch (NoSuchMethodException e) {
+			e.printStackTrace();
+		} catch (IllegalArgumentException e) {
+			e.printStackTrace();
+		} catch (InvocationTargetException e) {
+			e.printStackTrace();
 		}
+
+		addConfigureable(c, instance);
 	}
 
 	/**
@@ -68,20 +96,16 @@ public class Configurator {
 	 * values.
 	 * 
 	 * @param <T>
-	 *            The  type of the object, being created.
+	 *            The type of the object, being created.
 	 * @param c
 	 *            The class to add.
 	 * @param classInstance
 	 *            The object, that can be configured. The default values for the parameters will be taken from this
-	 *            object.
+	 *            object. If this is <code>null</code> only default values from static fields can be obtained.
 	 */
 	public <T extends Object> void addConfigureable(Class<T> c, T classInstance) {
 		if (c == null) {
 			throw new NullPointerException("The parameter c must not be null!");
-		}
-
-		if (classInstance == null) {
-			throw new NullPointerException("The parameter classInstance must not be null.");
 		}
 
 		addConfigureable(c, classInstance, true);
@@ -95,27 +119,40 @@ public class Configurator {
 	 * @param applyConfiguration
 	 */
 	private <T extends Object> void addConfigureable(Class<T> c, T o, boolean applyConfiguration) {
-		if (c.getSuperclass() != null) {
-			addConfigureable(c.getSuperclass(), o, false);
-		}
+		if (!knownClasses.contains(c)) {
+			knownClasses.add(c);
 
-		for (Field f : c.getDeclaredFields()) {
-			try {
-				f.setAccessible(true);
-				pm.addField(f, f.get(o));
-			} catch (IllegalArgumentException e) {
-				e.printStackTrace();
-			} catch (IllegalAccessException e) {
-				e.printStackTrace();
+			if (c.getSuperclass() != null) {
+				addConfigureable(c.getSuperclass(), o, false);
 			}
-		}
 
-		for (Constructor<?> constr : c.getConstructors()) {
-			pm.addConstructor(constr);
+			for (Field f : c.getDeclaredFields()) {
+				try {
+					f.setAccessible(true);
+
+					/*
+					 * do not obtain the field's value, if it is not static AND o is null - in that case we would run
+					 * into a NullPointerException.
+					 */
+					pm.addField(f, (o == null && !Modifier.isStatic(f.getModifiers()) ? null : f.get(o)));
+				} catch (IllegalArgumentException e) {
+					e.printStackTrace();
+				} catch (IllegalAccessException e) {
+					e.printStackTrace();
+				}
+			}
+
+			addConstructors(c.getConstructors());
 		}
 
 		if (applyConfiguration) {
 			pm.applyConfiguration();
+		}
+	}
+
+	private void addConstructors(Constructor<?>[] constructors) {
+		for (Constructor<?> constr : constructors) {
+			pm.addConstructor(constr);
 		}
 	}
 
@@ -178,11 +215,24 @@ public class Configurator {
 	 */
 	public <T> T createNewInstance(Constructor<T> constructor, boolean autoConfigure) {
 		try {
+			if (!knownClasses.contains(constructor.getDeclaringClass())) {
+				/* only add the constructors, here: */
+				addConstructors(constructor.getDeclaringClass().getConstructors());
+
+				pm.applyConfiguration();
+			}
+
 			Object[] values = pm.getValuesFor(constructor);
 
 			T instance;
 			instance = constructor.newInstance(values);
 
+			/* TODO: add the fields and so on, here: */
+			if (!knownClasses.contains(constructor.getDeclaringClass())) {
+				addConfigureable(constructor.getDeclaringClass(), instance, true);
+			}
+
+			/* apply the configuration if desired: */
 			if (autoConfigure) {
 				applyConfiguration(instance);
 			}
@@ -202,12 +252,28 @@ public class Configurator {
 	 *            The object to apply the configuration to.
 	 */
 	public void applyConfiguration(Object o) {
-		applyConfiguration(o, o.getClass());
+		Class<?> c = o.getClass();
+
+		if (!knownClasses.contains(c)) {
+			/* let's be merciful to people, who forgot to add */
+			addConfigureable(c);
+		}
+
+		applyConfiguration(o, c);
+	}
+	
+	public void applyConfiguration(Class<?> c) {
+
+		if (!knownClasses.contains(c)) {
+			/* let's be merciful to people, who forgot to add */
+			addConfigureable(c);
+		}
+
+		applyConfiguration(null, c);
 	}
 
 	/**
-	 * Applies the configuration to all fields, as far as they are marked with the {@link FieldDescription}
-	 * annotation.
+	 * Applies the configuration to all fields, as far as they are marked with the {@link FieldDescription} annotation.
 	 * 
 	 * @param o
 	 *            The object to apply the current values to.
@@ -222,8 +288,12 @@ public class Configurator {
 		for (Field f : c.getDeclaredFields()) {
 			if (pm.hasField(f)) {
 				try {
-					f.setAccessible(true);
-					f.set(o, pm.getValueFor(f));
+					if (o != null || Modifier.isStatic(f.getModifiers())) {
+						f.setAccessible(true);
+						f.set(o, pm.getValueFor(f));
+					} else {
+						System.err.println("net.noratargo.siJACK.Configurator.applyConfiguration(Object, Class<?>) skipping field \""+ f.toGenericString() +"\" because there is no instance available, to that this field's current value could be applied to.");
+					}
 				} catch (IllegalArgumentException e) {
 					e.printStackTrace();
 				} catch (IllegalAccessException e) {

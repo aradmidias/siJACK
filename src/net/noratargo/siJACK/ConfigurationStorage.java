@@ -174,12 +174,18 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 	@Override
 	public Object[] getValuesFor(Constructor<?> c) {
 		Parameter<?>[] pList = cpParameters.get(c);
+		Object[] o = null;
 		
-		Object[] o = new Object[pList.length];
-		int i = 0;
-		
-		for (Parameter<?> p : pList) {
-			o[i] = im.getNewInstanceFrom(p.getCurrentValue());
+		//TODO: find out, when and why this can be null!
+		if (pList != null) {
+			o = new Object[pList.length];
+			int i = 0;
+			
+			for (Parameter<?> p : pList) {
+				o[i] = im.getNewInstanceFrom(p.getCurrentValue());
+			}
+		} else {
+			o = new Object[0];
 		}
 		
 		return o;

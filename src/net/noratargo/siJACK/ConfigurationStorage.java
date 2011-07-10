@@ -1,11 +1,18 @@
 package net.noratargo.siJACK;
 
 import net.noratargo.siJACK.annotationHelper.AnnotationHelper;
+import net.noratargo.siJACK.annotations.DefaultConstructor;
+import net.noratargo.siJACK.annotations.DefaultValue;
+import net.noratargo.siJACK.annotations.Description;
+import net.noratargo.siJACK.annotations.Name;
+import net.noratargo.siJACK.annotations.PartialConstructor;
+import net.noratargo.siJACK.annotations.Prefix;
 import net.noratargo.siJACK.interfaces.ConfigurationManager;
 import net.noratargo.siJACK.interfaces.InstantiatorManager;
 import net.noratargo.siJACK.interfaces.ParameterManager;
 import net.noratargo.siJACK.util.DoubleHashMap;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -26,6 +33,10 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 
 	private final HashMap<Constructor<?>, Parameter<?>[]> cpParameters;
 
+	private final HashMap<Class<?>, Constructor<?>> cDefaultConstructors;
+
+	private final HashMap<Class<?>, Constructor<?>> cPartialConstructors;
+
 	/**
 	 * Stores all parameters, grouped by prefix and name. This is used for setting values.
 	 */
@@ -41,6 +52,8 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 
 		fpParameters = new HashMap<Field, Parameter<?>>();
 		cpParameters = new HashMap<Constructor<?>, Parameter<?>[]>();
+		cDefaultConstructors = new HashMap<Class<?>, Constructor<?>>();
+		cPartialConstructors = new HashMap<Class<?>, Constructor<?>>();
 		pnParameters = new DoubleHashMap<String, String, Set<Parameter<?>>>();
 		unsetValues = new ArrayList<PrefixNameValueStorage>();
 	}
@@ -145,10 +158,36 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 			Parameter<?>[] parameters = AnnotationHelper.createParametersFromConstructor(constr, im);
 
 			if (parameters != null) {
+				/* Handle default cosntructor */
+				DefaultConstructor defConstr = constr.getAnnotation(DefaultConstructor.class);
+				
+				if (defConstr != null) {
+					if (cDefaultConstructors.containsKey(constr.getDeclaringClass())) {
+						throw new RuntimeException("You must not specify multiple default construcotrs for one class!");
+					}
+					
+					cDefaultConstructors.put(constr.getDeclaringClass(), constr);
+				}
+				
+				/* handle partial constructor: */
+				PartialConstructor pConstr = constr.getAnnotation(PartialConstructor.class);
+
+				if (pConstr != null) {
+					if (cPartialConstructors.containsKey(constr.getDeclaringClass())) {
+						throw new RuntimeException("You must not specify multiple partial construcotrs for one class!");
+					}
+					
+					cPartialConstructors.put(constr.getDeclaringClass(), constr);
+				}
+				
+				
+				
 				cpParameters.put(constr, parameters);
 
 				for (Parameter<?> p : parameters) {
-					addPNParameters(p);
+					if (p != null) {
+						addPNParameters(p);
+					}
 				}
 			}
 		}
@@ -171,6 +210,18 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 		}
 	}
 
+	@SuppressWarnings("unchecked")
+	@Override
+	public <T> Constructor<T> getDefaultConstructor(Class<T> c) {
+		return (Constructor<T>) (cDefaultConstructors.containsKey(c) ? cDefaultConstructors.get(c) : null);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public <T> Constructor<T> getParitalConstructor(Class<T> c) {
+		return (Constructor<T>) (cPartialConstructors.containsKey(c) ? cPartialConstructors.get(c) : null);
+	}
+	
 	@Override
 	public Object[] getValuesFor(Constructor<?> c) {
 		Parameter<?>[] pList = cpParameters.get(c);
@@ -182,13 +233,64 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 			int i = 0;
 			
 			for (Parameter<?> p : pList) {
-				o[i] = im.getNewInstanceFrom(p.getCurrentValue());
+				o[i] = p == null ? null : im.getNewInstanceFrom(p.getCurrentValue());
+				i++;
 			}
 		} else {
 			o = new Object[0];
 		}
 		
 		return o;
+	}
+	
+	@Override
+	public Object[] getValuesFor(Constructor<?> c, Object... parameters) {
+		Object[] values = getValuesFor(c);
+		Object[] newValues = new Object[values.length];
+		
+		/* Apply the given objects (in o) to the leaks in the parameter's constructor: */
+		Annotation[][] pAnnotations = c.getParameterAnnotations();
+		int i = 0;
+		
+		for (Annotation[] annotations : pAnnotations) {
+			boolean isAnnotated = false;
+			
+			for (Annotation a : annotations) {
+				if (a instanceof Name || a instanceof Description || a instanceof DefaultValue || a instanceof Prefix) {
+					isAnnotated = true;
+				}
+			}
+			
+			newValues[i] = (isAnnotated && values[i] != null) ? values[i] : getCompatibleValueFor(c.getParameterTypes()[i], parameters);
+			
+			i++;
+		}
+		
+		return newValues;
+	}
+	
+	/**
+	 * 
+	 * @param <T>
+	 * @param parameterType
+	 * @param parameters
+	 * @return
+	 */
+	private Object getCompatibleValueFor(Class<?> parameterType, Object... parameters) {
+		int i = 0;
+		
+		/* look for an element in o, that is not null, that fits to the given parameter. */
+		for (Object param : parameters) {
+			if (parameterType.isInstance(param)) {
+				Object o = parameters[i];
+				parameters[i] = null;
+				return o;
+			}
+			
+			i++;
+		}
+		
+		return null;
 	}
 
 	private class PrefixNameValueStorage {

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <jardesc>
-    <jar path="siJACK/dist/siJACK-0.0.0.2.jar"/>
+    <jar path="siJACK/dist/siJACK-0.1.0.0.jar"/>
     <options buildIfNeeded="true" compress="true" descriptionLocation="/siJACK/export.jardesc" exportErrors="true" exportWarnings="true" includeDirectoryEntries="true" overwrite="false" saveDescription="true" storeRefactorings="false" useSourceFolders="false"/>
     <storedRefactorings deprecationInfo="true" structuralOnly="false"/>
     <selectedProjects/>

@@ -1,6 +1,7 @@
 package net.noratargo.siJACK.interfaces;
 
 import net.noratargo.siJACK.Configurator;
+import net.noratargo.siJACK.annotations.DefaultConstructor;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -95,6 +96,52 @@ public interface ParameterManager {
 	 *             if the given constructor is not annotated with a {@link ConstructorDescription} annotation.
 	 */
 	public Object[] getValuesFor(Constructor<?> c);
+
+	/**
+	 * Returns all known parameters for the given constructor, merging the given parameters into the default value of
+	 * the given constructor.
+	 * <p>
+	 * If the constructor has not yet been aded to this nanager, the implementation <b>should</b> add it to its internal
+	 * list of configureable constructors and call {@link #applyConfiguration()}. If the implementation does not whish
+	 * to add the constructor to its internal collection, then it has to thrwo a {@link RuntimeException}.
+	 * <p>
+	 * If the constructor is not Annotated with a {@link ConstructorDescription}, a RuntimeException has to be thrown.
+	 * 
+	 * @param c
+	 *            The field for that the configuration should be returned.
+	 * @return An array of new instances for the given constructor. The number of parameters must match the number of
+	 *         parameters of the given constructor. If the constructor has not parameters, an empty array has to be
+	 *         returned. Any element in the returned array may be <code>null</code>, if that is the current default
+	 *         value for the given Parameter.
+	 * @throws RuntimeException
+	 *             if the given constructor is not annotated with a {@link ConstructorDescription} annotation.
+	 */
+	public Object[] getValuesFor(Constructor<?> c, Object... o);
+
+	/**
+	 * Returns the default constructor or <code>null</code> of the specified class object.
+	 * 
+	 * @param <T>
+	 *            The type that the constructor will create.
+	 * @param c
+	 *            The class to obtain the default constructor form.
+	 * @return The default constructor or <code>null</code> if there is no constructor marked with the
+	 *         {@link DefaultConstructor} annotation.
+	 */
+	public <T> Constructor<T> getDefaultConstructor(Class<T> c);
+
+	/**
+	 * Returns the parital constructor of the specified class object, or <code>null</code> if there is no parital
+	 * constructor.
+	 * 
+	 * @param <T>
+	 *            The type that the constructor will create.
+	 * @param c
+	 *            The class to obtain the default constructor form.
+	 * @return The default constructor or <code>null</code> if there is no constructor marked with the
+	 *         {@link DefaultConstructor} annotation.
+	 */
+	public <T> Constructor<T> getParitalConstructor(Class<T> c);
 
 	/**
 	 * Returns <code>true</code>, if the given Field is known and a value can be returned for it - even if that value

@@ -1,5 +1,7 @@
 package net.noratargo.siJACK;
 
+import net.noratargo.siJACK.annotations.DefaultConstructor;
+import net.noratargo.siJACK.annotations.DefaultValue;
 import net.noratargo.siJACK.interfaces.ParameterManager;
 
 import java.lang.reflect.Constructor;
@@ -13,6 +15,10 @@ import java.util.Set;
  * Manages the configuration for the various elements.
  * 
  * @author HMulthaupt
+ * 
+ *         TODO: If no object is given - but (only) a class-object, then do not create an instance and therefore do NOT
+ *         analyse the non-static members (except constructors). TODO: Also do NOT add fields, after the constructor's
+ *         creation. This might break the configuration's default values.
  */
 public class Configurator {
 
@@ -60,32 +66,53 @@ public class Configurator {
 	 * @param c
 	 *            The class to add.
 	 */
+
 	public <T> void addConfigureable(Class<T> c) {
+		addConfigureable(c, true);
+	}
+
+	/**
+	 * Adds the given class to the ParameterManager, so that its fields and constructors can be configured.
+	 * <p>
+	 * This method will fail, if there is no parameterless constructor, to use for initialisation.
+	 * 
+	 * @param <T>
+	 *            The type of the object, being created.
+	 * @param c
+	 *            The class to add.
+	 * @param tryToInstantiate
+	 *            if <code>true</code>, then the method will try to create a new instance. If <code>false</code> then
+	 *            <code>null</code> will be used as object instance and therefore only constructors and static fields
+	 *            will be analysed, unless the non-static fields do have a {@link DefaultValue} annotation.
+	 */
+	public <T> void addConfigureable(Class<T> c, boolean tryToInstantiate) {
 		T instance = null;
 
-		try {
-			/*
-			 * try to create a new instance. If this fails (e.g. because c is an instance of Class<?>, then we still got
-			 * the empty
-			 */
-			Constructor<T> constructor = c.getConstructor();
+		if (tryToInstantiate) {
+			try {
+				/*
+				 * try to create a new instance. If this fails (e.g. because c is an instance of Class<?>, then we still
+				 * got the empty
+				 */
+				Constructor<T> constructor = c.getDeclaredConstructor();
 
-			if (constructor != null) {
-				constructor.setAccessible(true);
-				instance = constructor.newInstance();
+				if (constructor != null) {
+					constructor.setAccessible(true);
+					instance = constructor.newInstance();
+				}
+			} catch (InstantiationException e) {
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				e.printStackTrace();
+			} catch (SecurityException e) {
+				e.printStackTrace();
+			} catch (NoSuchMethodException e) {
+				e.printStackTrace();
+			} catch (IllegalArgumentException e) {
+				e.printStackTrace();
+			} catch (InvocationTargetException e) {
+				e.printStackTrace();
 			}
-		} catch (InstantiationException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-		} catch (SecurityException e) {
-			e.printStackTrace();
-		} catch (NoSuchMethodException e) {
-			e.printStackTrace();
-		} catch (IllegalArgumentException e) {
-			e.printStackTrace();
-		} catch (InvocationTargetException e) {
-			e.printStackTrace();
 		}
 
 		addConfigureable(c, instance);
@@ -142,7 +169,7 @@ public class Configurator {
 				}
 			}
 
-			addConstructors(c.getConstructors());
+			addConstructors(c.getDeclaredConstructors());
 		}
 
 		if (applyConfiguration) {
@@ -152,8 +179,56 @@ public class Configurator {
 
 	private void addConstructors(Constructor<?>[] constructors) {
 		for (Constructor<?> constr : constructors) {
+			constr.setAccessible(true);
 			pm.addConstructor(constr);
 		}
+	}
+
+	/**
+	 * Creates a new class from a partially parametrised constructor.
+	 * <p>
+	 * You may specify more params then the constructr can accept, since only the missing parameters will be added when creating the instance.
+	 * <p>
+	 * There has to be a constructor, annotated with 
+	 * 
+	 * @param <T>
+	 * @param c The class to create a new instance from.
+	 * @param params One or more parameters to use for instanciation. If one or more parameters are null, they will be ignored.
+	 * @return
+	 */
+	public <T> T createNewInstance(Class<T> c, boolean autoConfigure, Object... params) {
+		if (!knownClasses.contains(c)) {
+			/* only add the constructors, here: */
+			addConstructors(c.getDeclaredConstructors());
+
+			pm.applyConfiguration();
+		}
+
+		Constructor<T> paritalConstructor = pm.getParitalConstructor(c);
+		
+		return createNewInstance(paritalConstructor, autoConfigure, pm.getValuesFor(paritalConstructor, params));
+	}
+	
+	/**
+	 * Returns a new instance, using the default constructor.
+	 * <p>
+	 * The default constructor, is marked with the {@link DefaultConstructor} annotation.
+	 * 
+	 * @param <T>
+	 *            The type of the created class.
+	 * @param c
+	 *            The class to create an object from, by using
+	 * @param autoConfigure
+	 *            if the created object should be configured, using the {@link #applyConfiguration(Object, Class)}
+	 *            method.
+	 * @return The created classe's instance.
+	 */
+	public <T> T createNewInstance(Class<T> c, boolean autoConfigure) {
+		if (! knownClasses.contains(c)) {
+			addConfigureable(c, false);
+		}
+		
+		return createNewInstance(pm.getDefaultConstructor(c), autoConfigure);
 	}
 
 	/**
@@ -190,7 +265,7 @@ public class Configurator {
 	 */
 	public <T> T createNewInstance(Class<T> c, boolean autoConfigure, Class<?>... signature) {
 		try {
-			return createNewInstance(c.getConstructor(signature), autoConfigure);
+			return createNewInstance(c.getDeclaredConstructor(signature), autoConfigure);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
@@ -214,20 +289,24 @@ public class Configurator {
 	 * @see #applyConfiguration(Object)
 	 */
 	public <T> T createNewInstance(Constructor<T> constructor, boolean autoConfigure) {
-		try {
 			if (!knownClasses.contains(constructor.getDeclaringClass())) {
 				/* only add the constructors, here: */
-				addConstructors(constructor.getDeclaringClass().getConstructors());
+				addConstructors(constructor.getDeclaringClass().getDeclaredConstructors());
 
 				pm.applyConfiguration();
 			}
-
-			Object[] values = pm.getValuesFor(constructor);
+			
+			return createNewInstance(constructor, autoConfigure, pm.getValuesFor(constructor));
+	}
+	
+	private <T> T createNewInstance(Constructor<T> constructor, boolean autoConfigure, Object... params) {
+		try {
+			constructor.setAccessible(true);
 
 			T instance;
-			instance = constructor.newInstance(values);
+			instance = constructor.newInstance(params);
 
-			/* TODO: add the fields and so on, here: */
+			/* add the fields and so on, here: */
 			if (!knownClasses.contains(constructor.getDeclaringClass())) {
 				addConfigureable(constructor.getDeclaringClass(), instance, true);
 			}
@@ -242,6 +321,7 @@ public class Configurator {
 			throw new RuntimeException(e);
 		}
 	}
+	
 
 	/**
 	 * Applies the current configuration to the given object. If no configuration has been set for a specific field, its
@@ -251,17 +331,18 @@ public class Configurator {
 	 * @param o
 	 *            The object to apply the configuration to.
 	 */
-	public void applyConfiguration(Object o) {
-		Class<?> c = o.getClass();
+	public <T> void applyConfiguration(T o) {
+		@SuppressWarnings("unchecked")
+		Class<T> c = (Class<T>) o.getClass();
 
 		if (!knownClasses.contains(c)) {
 			/* let's be merciful to people, who forgot to add */
-			addConfigureable(c);
+			addConfigureable(c, o);
 		}
 
 		applyConfiguration(o, c);
 	}
-	
+
 	public void applyConfiguration(Class<?> c) {
 
 		if (!knownClasses.contains(c)) {
@@ -292,7 +373,10 @@ public class Configurator {
 						f.setAccessible(true);
 						f.set(o, pm.getValueFor(f));
 					} else {
-						System.err.println("net.noratargo.siJACK.Configurator.applyConfiguration(Object, Class<?>) skipping field \""+ f.toGenericString() +"\" because there is no instance available, to that this field's current value could be applied to.");
+						System.err
+								.println("net.noratargo.siJACK.Configurator.applyConfiguration(Object, Class<?>) skipping field \""
+										+ f.toGenericString()
+										+ "\" because there is no instance available, to that this field's current value could be applied to.");
 					}
 				} catch (IllegalArgumentException e) {
 					e.printStackTrace();

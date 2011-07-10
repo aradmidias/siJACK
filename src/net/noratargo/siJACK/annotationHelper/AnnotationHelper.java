@@ -97,6 +97,7 @@ public class AnnotationHelper {
 			DefaultValue dv = null;
 			Description des = null;
 
+			/* try to get the current parameter's annotations: */
 			for (Annotation a : annotations) {
 				if (a instanceof Prefix) {
 					p = (Prefix) a;

@@ -8,6 +8,8 @@ import net.noratargo.siJACK.annotations.Name;
 import net.noratargo.siJACK.annotations.PartialConstructor;
 import net.noratargo.siJACK.annotations.Prefix;
 import net.noratargo.siJACK.interfaces.ConfigurationManager;
+import net.noratargo.siJACK.interfaces.ImmutableConstructor;
+import net.noratargo.siJACK.interfaces.ImmutableParameter;
 import net.noratargo.siJACK.interfaces.InstantiatorManager;
 import net.noratargo.siJACK.interfaces.ParameterManager;
 import net.noratargo.siJACK.util.DoubleHashMap;
@@ -292,6 +294,24 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 		
 		return null;
 	}
+	
+	@Override
+	public Set<ImmutableParameter<?>> getFields() {
+		return new HashSet<ImmutableParameter<?>>(fpParameters.values());
+	}
+	
+	@Override
+	public <T> Set<ImmutableConstructor<?>> getConstructors() {
+		Set<ImmutableConstructor<?>> result = new HashSet<ImmutableConstructor<?>>();
+		
+		for (Constructor<?>	c : cpParameters.keySet()) {
+			result.add(new ConstructorInformation(c, cpParameters.get(c)));
+		}
+		
+		return result;
+	}
+	
+	
 
 	private class PrefixNameValueStorage {
 		public final String prefix;

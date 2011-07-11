@@ -2,6 +2,7 @@ package net.noratargo.siJACK;
 
 import net.noratargo.siJACK.interfaces.ImmutableParameter;
 
+import java.util.HashSet;
 import java.util.Set;
 
 public class Parameter<T> implements ImmutableParameter<T> {
@@ -13,7 +14,19 @@ public class Parameter<T> implements ImmutableParameter<T> {
 	private String defaultPrefix;
 	private String defaultName;
 	private String description;
+	private boolean hasDefaultValue;
 
+	public Parameter(Class<T> valueClassType) {
+		this.defaultValue = null;
+		this.currentValue = null;
+		this.valueClassType = valueClassType;
+		this.parameterPrefixPairs = new HashSet<ParameterPrefixNamePair>();
+		this.defaultPrefix = "";
+		this.defaultName = "";
+		this.description = "";
+		hasDefaultValue = false;
+	}
+	
 	public Parameter(T defaultValue, Class<T> valueClassType, Set<ParameterPrefixNamePair> parameterPrefixPairs, String defaultPrefix,
 			String defaultName, String description) {
 		this.defaultValue = defaultValue;
@@ -23,6 +36,7 @@ public class Parameter<T> implements ImmutableParameter<T> {
 		this.defaultPrefix = defaultPrefix;
 		this.defaultName = defaultName;
 		this.description = description;
+		hasDefaultValue = true;
 	}
 
 	@Override
@@ -62,6 +76,12 @@ public class Parameter<T> implements ImmutableParameter<T> {
 	@Override
 	public String getDescription() {
 		return description;
+	}
+	
+	@Override
+	public boolean hasDefaultValue() {
+		// TODO Auto-generated method stub
+		return hasDefaultValue;
 	}
 	
 	//TODO: think about, when two parameters are equal!!! Or can an equality never be achieved?

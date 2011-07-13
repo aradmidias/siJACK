@@ -162,7 +162,9 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 		Set<ParameterPrefixNamePair> ppnps = new HashSet<ParameterPrefixNamePair>();
 		
 		for (PrefixNameValueStorage pnvs : unsetValues) {
-			ppnps.add(new ParameterPrefixNamePair(pnvs.prefix, pnvs.name));
+			if (! pnParameters.contains(pnvs.prefix, pnvs.name)) {
+				ppnps.add(new ParameterPrefixNamePair(pnvs.prefix, pnvs.name));
+			}
 		}
 		
 		return ppnps;
@@ -303,6 +305,7 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 			int i = 0;
 			
 			for (Parameter<?> p : pList) {
+				@SuppressWarnings("unchecked")
 				Parameter<T> pt = (Parameter<T>) p;
 				o[i] = p == null ? null : im.getNewInstanceFrom(pt.getValueClassType(), pt.getCurrentValue());
 				i++;

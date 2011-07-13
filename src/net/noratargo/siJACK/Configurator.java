@@ -196,14 +196,14 @@ public class Configurator {
 	 *            ignored.
 	 * @return
 	 */
-	public <T> T newInstanceFromParitalConstructor(Class<T> c, boolean autoConfigure, Object... params) {
+	public <T> T newInstanceFromPartialConstructor(Class<T> c, boolean autoConfigure, Object... params) {
 		if (!knownClasses.contains(c)) {
 			addConstructors(c);
 			pm.applyConfiguration();
 		}
 
 		try {
-			Constructor<T> paritalConstructor = pm.getParitalConstructor(c);
+			Constructor<T> paritalConstructor = pm.getPartialConstructor(c);
 			return newInstance(paritalConstructor, autoConfigure, pm.getValuesFor(paritalConstructor, params));
 		} catch (Exception e) {
 			/* the instantiation failed - so we have to take care of adding the fields and marking the classes: */

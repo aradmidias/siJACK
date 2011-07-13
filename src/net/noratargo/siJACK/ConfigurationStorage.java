@@ -29,7 +29,7 @@ import javax.naming.ConfigurationException;
 public class ConfigurationStorage implements ParameterManager, ConfigurationManager {
 
 	private final String prefixNameSeperator;
-	
+
 	private final String nameValueSeperator;
 
 	/**
@@ -59,12 +59,12 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 	public ConfigurationStorage(String prefixNameSeperator, InstantiatorManager im) {
 		this(prefixNameSeperator, "=", im);
 	}
-	
+
 	public ConfigurationStorage(String prefixNameSeperator, String nameValueSeperator, InstantiatorManager im) {
 		assert prefixNameSeperator != null : "The parameter prefixNameSeperator must not be null!";
 		assert nameValueSeperator != null : "The parameter nameValueSeperator must not be null!";
 		assert im != null : "The parameter im must not be null!";
-		
+
 		this.prefixNameSeperator = prefixNameSeperator;
 		this.nameValueSeperator = nameValueSeperator;
 		this.im = im;
@@ -81,26 +81,28 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 	public void setValue(String pns) throws ConfigurationException {
 		int prefixNameSeperatorIndex = pns.indexOf(prefixNameSeperator);
 		int nameValueSeperatorIndex = pns.indexOf(nameValueSeperator, prefixNameSeperatorIndex);
-		
+
 		if (prefixNameSeperatorIndex == -1) {
 			prefixNameSeperatorIndex = 0;
 		}
-		
+
 		if (nameValueSeperatorIndex == -1) {
 			nameValueSeperatorIndex = prefixNameSeperatorIndex + prefixNameSeperator.length();
 		}
-		
+
 		String prefix = pns.substring(0, prefixNameSeperatorIndex);
 		String name = pns.substring(prefixNameSeperatorIndex + prefixNameSeperator.length(), nameValueSeperatorIndex);
 		String value = pns.substring(nameValueSeperatorIndex + nameValueSeperator.length());
-		
-		if (! value.equals("") && !name.equals("")) {
+
+		if (!value.equals("") && !name.equals("")) {
 			setValue(prefix, name, value);
 		} else {
-			throw new ConfigurationException("The name of the property to set, or the value to set (or both) are missing in configuration string: "+ pns);
+			throw new ConfigurationException(
+					"The name of the property to set, or the value to set (or both) are missing in configuration string: "
+							+ pns);
 		}
 	}
-	
+
 	@Override
 	public void setValue(String name, String value) throws ConfigurationException {
 		int index = name.indexOf(prefixNameSeperator);
@@ -115,7 +117,8 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 			/* no name present - do nothing here, since in this case, no element can be adressed, by now. */
 		} else {
 			/* We have both, prefix and key. */
-			setValue(name.substring(0, index), name.substring(index + prefixNameSeperator.length(), name.length()), value);
+			setValue(name.substring(0, index), name.substring(index + prefixNameSeperator.length(), name.length()),
+					value);
 		}
 	}
 
@@ -132,7 +135,7 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 				@SuppressWarnings("unchecked")
 				Parameter<T> p = (Parameter<T>) param;
 				p.setCurrentValue(im.getNewInstanceFor(p.getValueClassType(), value));
-				
+
 			}
 		}
 	}
@@ -152,21 +155,21 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 					@SuppressWarnings("unchecked")
 					Parameter<T> p = (Parameter<T>) param;
 					p.setCurrentValue(im.getNewInstanceFor(p.getValueClassType(), unsetValue.value));
-					
+
 				}
 			}
 		}
 	}
-	
+
 	public Set<ParameterPrefixNamePair> getUnapliedConfiguration() {
 		Set<ParameterPrefixNamePair> ppnps = new HashSet<ParameterPrefixNamePair>();
-		
+
 		for (PrefixNameValueStorage pnvs : unsetValues) {
-			if (! pnParameters.contains(pnvs.prefix, pnvs.name)) {
+			if (!pnParameters.contains(pnvs.prefix, pnvs.name)) {
 				ppnps.add(new ParameterPrefixNamePair(pnvs.prefix, pnvs.name));
 			}
 		}
-		
+
 		return ppnps;
 	}
 
@@ -181,7 +184,7 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 
 		return im.getNewInstanceFrom(p.getValueClassType(), p.getCurrentValue());
 	}
-	
+
 	@Override
 	public boolean hasValueFor(Field f) {
 		Parameter<?> p = fpParameters.get(f);
@@ -202,12 +205,12 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 	public <T> void addField(Field f) {
 		addField(f, null, false);
 	}
-	
+
 	@Override
 	public <T> void addField(Field f, T defaultValue) {
 		addField(f, defaultValue, true);
 	}
-	
+
 	private <T> void addField(Field f, T defaultValue, boolean wasFieldAccessable) {
 		if (!fpParameters.containsKey(f)) {
 			Parameter<T> p = AnnotationHelper.createParameter(f, defaultValue, wasFieldAccessable, im);
@@ -243,15 +246,15 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 
 			/* Handle default cosntructor */
 			DefaultConstructor defConstr = constr.getAnnotation(DefaultConstructor.class);
-			
+
 			if (defConstr != null) {
 				if (cDefaultConstructors.containsKey(constr.getDeclaringClass())) {
 					throw new RuntimeException("You must not specify multiple default construcotrs for one class!");
 				}
-				
+
 				cDefaultConstructors.put(constr.getDeclaringClass(), constr);
 			}
-			
+
 			/* handle partial constructor: */
 			PartialConstructor pConstr = constr.getAnnotation(PartialConstructor.class);
 
@@ -259,25 +262,26 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 				if (cPartialConstructors.containsKey(constr.getDeclaringClass())) {
 					throw new RuntimeException("You must not specify multiple partial construcotrs for one class!");
 				}
-				
+
 				cPartialConstructors.put(constr.getDeclaringClass(), constr);
 			}
 		}
 	}
-	
+
 	/**
 	 * Adds the given parameter to all its ParameterPreferixNamePairs.
+	 * 
 	 * @param p
 	 */
 	private void addPNParameters(Parameter<?> p) {
 		for (ParameterPrefixNamePair pn : p.getParameterPrefixNamePairs()) {
 			Set<Parameter<?>> pSet = pnParameters.get(pn.getPrefix(), pn.getName());
-			
+
 			if (pSet == null) {
 				pSet = new HashSet<Parameter<?>>();
 				pnParameters.put(pn.getPrefix(), pn.getName(), pSet);
 			}
-			
+
 			pSet.add(p);
 		}
 	}
@@ -290,61 +294,66 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public <T> Constructor<T> getParitalConstructor(Class<T> c) {
+	public <T> Constructor<T> getPartialConstructor(Class<T> c) {
 		return (Constructor<T>) (cPartialConstructors.containsKey(c) ? cPartialConstructors.get(c) : null);
 	}
-	
+
 	@Override
 	public <T> Object[] getValuesFor(Constructor<?> c) {
 		Parameter<?>[] pList = cpParameters.get(c);
 		Object[] o = null;
-		
-		//TODO: find out, when and why this can be null!
-		if (pList != null) {
-			o = new Object[pList.length];
-			int i = 0;
-			
-			for (Parameter<?> p : pList) {
-				@SuppressWarnings("unchecked")
-				Parameter<T> pt = (Parameter<T>) p;
-				o[i] = p == null ? null : im.getNewInstanceFrom(pt.getValueClassType(), pt.getCurrentValue());
-				i++;
-			}
-		} else {
-			o = new Object[0];
+
+		/*
+		 * pList can be null, if
+		 * net.noratargo.siJACK.annotationHelper.AnnotationHelper.createParametersFromConstructor(Constructor<?>,
+		 * InstantiatorManager) returns null.
+		 */
+		if (pList == null) {
+			throw new RuntimeException(
+					"You try to instantiate a constructor, that has 1 or more arguments, but it is neither marked as ParitalConstructor, nor has all elements annotated.");
 		}
-		
+
+		o = new Object[pList.length];
+		int i = 0;
+
+		for (Parameter<?> p : pList) {
+			@SuppressWarnings("unchecked")
+			Parameter<T> pt = (Parameter<T>) p;
+			o[i] = p == null ? null : im.getNewInstanceFrom(pt.getValueClassType(), pt.getCurrentValue());
+			i++;
+		}
+
 		return o;
 	}
-	
+
 	@Override
 	public <T> Object[] getValuesFor(Constructor<?> c, Object... parameters) {
 		Object[] values = getValuesFor(c);
 		Object[] newValues = new Object[values.length];
-		
+
 		/* Apply the given objects (in o) to the leaks in the parameter's constructor: */
 		Annotation[][] pAnnotations = c.getParameterAnnotations();
 		int i = 0;
-		
+
 		for (Annotation[] annotations : pAnnotations) {
 			boolean isAnnotated = false;
-			
+
 			for (Annotation a : annotations) {
 				if (a instanceof Name || a instanceof Description || a instanceof DefaultValue || a instanceof Prefix) {
 					isAnnotated = true;
 				}
 			}
-			
-			newValues[i] = (isAnnotated && values[i] != null) ? values[i] : getCompatibleValueFor(c.getParameterTypes()[i], parameters);
-			
+
+			newValues[i] = (isAnnotated && values[i] != null) ? values[i] : getCompatibleValueFor(
+					c.getParameterTypes()[i], parameters);
+
 			i++;
 		}
-		
+
 		return newValues;
 	}
-	
+
 	/**
-	 * 
 	 * @param <T>
 	 * @param parameterType
 	 * @param parameters
@@ -352,7 +361,7 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 	 */
 	private Object getCompatibleValueFor(Class<?> parameterType, Object... parameters) {
 		int i = 0;
-		
+
 		/* look for an element in o, that is not null, that fits to the given parameter. */
 		for (Object param : parameters) {
 			if (parameterType.isInstance(param)) {
@@ -360,31 +369,29 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 				parameters[i] = null;
 				return o;
 			}
-			
+
 			i++;
 		}
-		
+
 		return null;
 	}
-	
+
 	@Override
 	public Set<ImmutableParameter<?>> getFields() {
 		return new HashSet<ImmutableParameter<?>>(fpParameters.values());
 	}
-	
+
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public <T> Set<ImmutableConstructor<?>> getConstructors() {
 		Set<ImmutableConstructor<?>> result = new HashSet<ImmutableConstructor<?>>();
-		
-		for (Constructor<?>	c : cpParameters.keySet()) {
+
+		for (Constructor<?> c : cpParameters.keySet()) {
 			result.add(new ConstructorInformation(c, cpParameters.get(c)));
 		}
-		
+
 		return result;
 	}
-	
-	
 
 	private class PrefixNameValueStorage {
 		public final String prefix;
@@ -399,5 +406,3 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 	}
 
 }
-
-

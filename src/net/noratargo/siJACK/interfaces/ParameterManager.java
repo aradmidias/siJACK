@@ -168,7 +168,7 @@ public interface ParameterManager {
 	 * @return The default constructor or <code>null</code> if there is no constructor marked with the
 	 *         {@link DefaultConstructor} annotation.
 	 */
-	public <T> Constructor<T> getParitalConstructor(Class<T> c);
+	public <T> Constructor<T> getPartialConstructor(Class<T> c);
 
 	/**
 	 * Returns <code>true</code>, if the given Field is known and a value can be returned for it - even if that value

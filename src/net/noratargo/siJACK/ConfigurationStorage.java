@@ -120,14 +120,15 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 	}
 
 	@Override
-	public Object getValueFor(Field f) {
-		Parameter<?> p = fpParameters.get(f);
+	public <T> T getValueFor(Field f) {
+		@SuppressWarnings("unchecked")
+		Parameter<T> p = (Parameter<T>) fpParameters.get(f);
 
 		if (p == null) {
 			throw new NoSuchElementException("The given field is no known parameter: " + f);
 		}
 
-		return im.getNewInstanceFrom(p.getCurrentValue());
+		return im.getNewInstanceFrom(p.getValueClassType(), p.getCurrentValue());
 	}
 
 	@Override
@@ -136,9 +137,18 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 	}
 
 	@Override
+	public <T> void addField(Field f) {
+		addField(f, null, false);
+	}
+	
+	@Override
 	public <T> void addField(Field f, T defaultValue) {
+		addField(f, defaultValue, true);
+	}
+	
+	private <T> void addField(Field f, T defaultValue, boolean wasFieldAccessable) {
 		if (!fpParameters.containsKey(f)) {
-			Parameter<T> p = AnnotationHelper.createParameter(f, defaultValue, im);
+			Parameter<T> p = AnnotationHelper.createParameter(f, defaultValue, wasFieldAccessable, im);
 
 			if (p != null) {
 				/* only insert the Parameter, if it is not added, yet. */
@@ -223,7 +233,7 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 	}
 	
 	@Override
-	public Object[] getValuesFor(Constructor<?> c) {
+	public <T> Object[] getValuesFor(Constructor<?> c) {
 		Parameter<?>[] pList = cpParameters.get(c);
 		Object[] o = null;
 		
@@ -233,7 +243,8 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 			int i = 0;
 			
 			for (Parameter<?> p : pList) {
-				o[i] = p == null ? null : im.getNewInstanceFrom(p.getCurrentValue());
+				Parameter<T> pt = (Parameter<T>) p;
+				o[i] = p == null ? null : im.getNewInstanceFrom(pt.getValueClassType(), pt.getCurrentValue());
 				i++;
 			}
 		} else {
@@ -244,7 +255,7 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 	}
 	
 	@Override
-	public Object[] getValuesFor(Constructor<?> c, Object... parameters) {
+	public <T> Object[] getValuesFor(Constructor<?> c, Object... parameters) {
 		Object[] values = getValuesFor(c);
 		Object[] newValues = new Object[values.length];
 		

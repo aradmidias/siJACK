@@ -28,6 +28,7 @@ public interface ImmutableParameter<T> {
 
 	/**
 	 * Returns all prefix and name combinations, under that this parameter is accessable.
+	 * 
 	 * @return
 	 */
 	public Set<ParameterPrefixNamePair> getParameterPrefixNamePairs();
@@ -63,4 +64,19 @@ public interface ImmutableParameter<T> {
 	 *         <code>false</code> otherwise.
 	 */
 	public boolean hasDefaultValue();
+
+	/**
+	 * Returns <code>true</code> if this parameter's value has been changed from its default value. The values returned
+	 * by {@link #getDefaultValue()} and {@link #getCurrentValue()} may still be equal and might even have the same
+	 * identity (<code>{@link #getCurrentValue()} == {@link #getDefaultValue()}</code> evaluates to <code>true</code>,
+	 * although this method returns <code>true</code>, too). retruns <code>false</code> if the current value has not
+	 * been changed.
+	 * <p>
+	 * Historical information: This method has been added, to detect a non-static fields, whose default-value could not
+	 * be determined because there was no instance present to aquire the value from and they were not annotated with the
+	 * {@link DefaultValue} annotation.
+	 * 
+	 * @return <code>true</code> if the current value has been changed, <code>false</code> if it has not been changed.
+	 */
+	public boolean hasValueChanged();
 }

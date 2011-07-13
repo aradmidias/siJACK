@@ -14,11 +14,9 @@ import java.util.Set;
 /**
  * Manages the configuration for the various elements.
  * 
- * @author HMulthaupt
- * 
- *         TODO: If no object is given - but (only) a class-object, then do not create an instance and therefore do NOT
- *         analyse the non-static members (except constructors). TODO: Also do NOT add fields, after the constructor's
- *         creation. This might break the configuration's default values.
+ * @author HMulthaupt TODO: If no object is given - but (only) a class-object, then do not create an instance and
+ *         therefore do NOT analyse the non-static members (except constructors). TODO: Also do NOT add fields, after
+ *         the constructor's creation. This might break the configuration's default values.
  */
 public class Configurator {
 
@@ -74,7 +72,15 @@ public class Configurator {
 	/**
 	 * Adds the given class to the ParameterManager, so that its fields and constructors can be configured.
 	 * <p>
-	 * This method will fail, if there is no parameterless constructor, to use for initialisation.
+	 * If <code>tryToInstantiate</code> is <code>false</code> then all <i>non-static</i> fields <b>MUST BE</b> annotated
+	 * with a {@link DefaultValue} annotation (since no instance should be created and therefore the non-static fields
+	 * can not be initialised - so their values can not be obtained).
+	 * <p>
+	 * TODO: Note: It might be, that this behavior changes in future relaeses: The following possibility exists: If a
+	 * class is given and no instance should be created, the non-static fields are still visible (but not yet set with
+	 * values). Therefore these fields could be added as parameters, having the {@link Parameter#hasDefaultValue()}
+	 * method returning <code>false</code> to indicate, that there is no default value. But it may still have a
+	 * (non-default) value. This scenario would lead to the following conclusion:
 	 * 
 	 * @param <T>
 	 *            The type of the object, being created.
@@ -161,7 +167,11 @@ public class Configurator {
 					 * do not obtain the field's value, if it is not static AND o is null - in that case we would run
 					 * into a NullPointerException.
 					 */
-					pm.addField(f, (o == null && !Modifier.isStatic(f.getModifiers()) ? null : f.get(o)));
+					if (o == null && !Modifier.isStatic(f.getModifiers())) {
+						pm.addField(f);
+					} else {
+						pm.addField(f, f.get(o));
+					}
 				} catch (IllegalArgumentException e) {
 					e.printStackTrace();
 				} catch (IllegalAccessException e) {
@@ -187,13 +197,17 @@ public class Configurator {
 	/**
 	 * Creates a new class from a partially parametrised constructor.
 	 * <p>
-	 * You may specify more params then the constructr can accept, since only the missing parameters will be added when creating the instance.
+	 * You may specify more params then the constructr can accept, since only the missing parameters will be added when
+	 * creating the instance.
 	 * <p>
-	 * There has to be a constructor, annotated with 
+	 * There has to be a constructor, annotated with
 	 * 
 	 * @param <T>
-	 * @param c The class to create a new instance from.
-	 * @param params One or more parameters to use for instanciation. If one or more parameters are null, they will be ignored.
+	 * @param c
+	 *            The class to create a new instance from.
+	 * @param params
+	 *            One or more parameters to use for instanciation. If one or more parameters are null, they will be
+	 *            ignored.
 	 * @return
 	 */
 	public <T> T createNewInstance(Class<T> c, boolean autoConfigure, Object... params) {
@@ -205,10 +219,10 @@ public class Configurator {
 		}
 
 		Constructor<T> paritalConstructor = pm.getParitalConstructor(c);
-		
+
 		return createNewInstance(paritalConstructor, autoConfigure, pm.getValuesFor(paritalConstructor, params));
 	}
-	
+
 	/**
 	 * Returns a new instance, using the default constructor.
 	 * <p>
@@ -224,10 +238,10 @@ public class Configurator {
 	 * @return The created classe's instance.
 	 */
 	public <T> T createNewInstance(Class<T> c, boolean autoConfigure) {
-		if (! knownClasses.contains(c)) {
+		if (!knownClasses.contains(c)) {
 			addConfigureable(c, false);
 		}
-		
+
 		return createNewInstance(pm.getDefaultConstructor(c), autoConfigure);
 	}
 
@@ -289,16 +303,16 @@ public class Configurator {
 	 * @see #applyConfiguration(Object)
 	 */
 	public <T> T createNewInstance(Constructor<T> constructor, boolean autoConfigure) {
-			if (!knownClasses.contains(constructor.getDeclaringClass())) {
-				/* only add the constructors, here: */
-				addConstructors(constructor.getDeclaringClass().getDeclaredConstructors());
+		if (!knownClasses.contains(constructor.getDeclaringClass())) {
+			/* only add the constructors, here: */
+			addConstructors(constructor.getDeclaringClass().getDeclaredConstructors());
 
-				pm.applyConfiguration();
-			}
-			
-			return createNewInstance(constructor, autoConfigure, pm.getValuesFor(constructor));
+			pm.applyConfiguration();
+		}
+
+		return createNewInstance(constructor, autoConfigure, pm.getValuesFor(constructor));
 	}
-	
+
 	private <T> T createNewInstance(Constructor<T> constructor, boolean autoConfigure, Object... params) {
 		try {
 			constructor.setAccessible(true);
@@ -321,7 +335,6 @@ public class Configurator {
 			throw new RuntimeException(e);
 		}
 	}
-	
 
 	/**
 	 * Applies the current configuration to the given object. If no configuration has been set for a specific field, its

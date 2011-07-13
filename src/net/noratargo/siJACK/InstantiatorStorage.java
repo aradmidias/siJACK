@@ -67,10 +67,34 @@ public class InstantiatorStorage implements InstantiatorManager {
 		return p.createNewInstanceFromString(stringRepresentation);
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
-	public <T> T getNewInstanceFrom(T originalObject) {
-		return originalObject == null ? null : getInstanciator((Class<T>) originalObject.getClass()).createNewInstance(originalObject);
+	public <T> T getNewInstanceFrom(Class<T> targetType, T originalObject) {
+//		if (originalObject == null) {
+//			/* look for nativ datatypes to be set: */
+//			if (targetType == int.class) {
+//				return (T) new Integer(0);
+//			}
+//			if (targetType == long.class) {
+//				return (T) new Long(0);
+//			}
+//			if (targetType == short.class) {
+//				return (T) new Short((short) 0);
+//			}
+//			if (targetType == byte.class) {
+//				return (T) new Byte((byte) 0);
+//			}
+//			if (targetType == char.class) {
+//				return (T) new Character((char) 0);
+//			}
+//			if (targetType == float.class) {
+//				return (T) new Float(0);
+//			}
+//			if (targetType == double.class) {
+//				return (T) new Double(0);
+//			}
+//		}
+//		
+		return originalObject == null ? null : getInstanciator(targetType).createNewInstance(originalObject);
 	}
 
 	@SuppressWarnings("unchecked")

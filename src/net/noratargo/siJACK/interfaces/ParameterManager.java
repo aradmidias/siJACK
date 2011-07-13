@@ -2,6 +2,7 @@ package net.noratargo.siJACK.interfaces;
 
 import net.noratargo.siJACK.Configurator;
 import net.noratargo.siJACK.annotations.DefaultConstructor;
+import net.noratargo.siJACK.annotations.DefaultValue;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -18,7 +19,33 @@ import java.lang.reflect.Field;
 public interface ParameterManager {
 
 	/**
-	 * Adds the specified field to the Collection of known fields.
+	 * Adds the specified field to the Collection of known fields. This variation is for adding fields, where no default
+	 * value could be read from the field itself. The field may still have a {@link DefaultValue} annotation.
+	 * <p>
+	 * If the field's value is accessible use {@link #addField(Field, Object)} (even if the field's value is <code>null</code>)
+	 * <p>
+	 * An implementing class has to check the previously mentioned annotation and use it - if necessary - to determine
+	 * the default value.
+	 * <p>
+	 * A field may be revoked, if it does not match certain criterias (e.g. it has already been added, or it is not
+	 * annotated with a {@link FieldDescription} annotation).
+	 * <p>
+	 * TODO: think about what to do, if a field is being revoked.
+	 * 
+	 * @param <T>
+	 *            The type of the default value.
+	 * @param defaultValue
+	 *            This field's default value, if it could be obtained. May be <code>null</code>, if for whatever reason
+	 *            the default value's determination resulted in <code>null</code>.
+	 */
+	public <T> void addField(Field f);
+
+	/**
+	 * Adds the specified field to the Collection of known fields. The currentValue is the value, that the field
+	 * currently carries. If it is inaccessible, use {@link #addFIeld(Field)}
+	 * <p>
+	 * An implementing method (not the calling one!) has to check the {@link DefaultValue} annotation and use it - if necessary - to determine
+	 * the default value.
 	 * <p>
 	 * A field may be revoked, if it does not match certain criterias (e.g. it has already been added, or it is not
 	 * annotated with a {@link FieldDescription} annotation).
@@ -29,11 +56,11 @@ public interface ParameterManager {
 	 *            The type of the default value.
 	 * @param f
 	 *            The field to add.
-	 * @param defaultValue
-	 *            This field's default value, if it could be obtained. May be <code>null</code>, if for whatever reason
-	 *            the default value's determination resulted in <code>null</code>.
+	 * @param currentValue
+	 *            This field's current value. It might be used as deault value, if no {@link DefaultValue} annotation is present. If it could not determined, use {@link #addFIeld(Field)}.
+	 *            <code>null</code> is allowed, if the field's default value is <code>null</code>.
 	 */
-	public <T> void addField(Field f, T defaultValue);
+	public <T> void addField(Field f, T currentValue);
 
 	/**
 	 * Adds the specified construcotr to the Collection of known constructors.
@@ -75,7 +102,7 @@ public interface ParameterManager {
 	 * @throws RuntimeException
 	 *             if the given field is not annotated with the {@link FieldDescription} annotation.
 	 */
-	public Object getValueFor(Field f) throws RuntimeException;
+	public <T> T getValueFor(Field f) throws RuntimeException;
 
 	/**
 	 * Returns all known parameters for the given constructor.
@@ -95,7 +122,7 @@ public interface ParameterManager {
 	 * @throws RuntimeException
 	 *             if the given constructor is not annotated with a {@link ConstructorDescription} annotation.
 	 */
-	public Object[] getValuesFor(Constructor<?> c);
+	public <T> Object[] getValuesFor(Constructor<?> c);
 
 	/**
 	 * Returns all known parameters for the given constructor, merging the given parameters into the default value of
@@ -116,7 +143,7 @@ public interface ParameterManager {
 	 * @throws RuntimeException
 	 *             if the given constructor is not annotated with a {@link ConstructorDescription} annotation.
 	 */
-	public Object[] getValuesFor(Constructor<?> c, Object... o);
+	public <T> Object[] getValuesFor(Constructor<?> c, Object... o);
 
 	/**
 	 * Returns the default constructor or <code>null</code> of the specified class object.
@@ -151,4 +178,5 @@ public interface ParameterManager {
 	 * @return
 	 */
 	public boolean hasField(Field f);
+
 }

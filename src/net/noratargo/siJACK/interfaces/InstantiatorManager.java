@@ -17,15 +17,16 @@ public interface InstantiatorManager {
 	 * creates a new instance from the given object.
 	 * <p>
 	 * If <code>T</code> is immutable, then the <code>originalObject</code> may be returned.
+	 * @param targetType TODO
+	 * @param originalObject
+	 *            The original object to create a new instance from.
 	 * 
 	 * @param <T>
 	 *            The type of the object, being returned.
-	 * @param originalObject
-	 *            The original object to create a new instance from.
 	 * @return A new instance of the original object. This may be the same object, if <code>originalObject</code> is
 	 *         immutable.
 	 */
-	public <T> T getNewInstanceFrom(T originalObject);
+	public <T> T getNewInstanceFrom(Class<T> targetType, T originalObject);
 
 	/**
 	 * Adds the specified instantiator to this manager.

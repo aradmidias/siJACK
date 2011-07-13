@@ -27,13 +27,16 @@ public class AnnotationHelper {
 	 *            The field for that this Parameter will be.
 	 * @param defaultValue
 	 *            The default value of the given field. May be <code>null</code> if it is not given.
+	 * @param wasFieldAccessible
+	 *            Set to <code>true</code> if the field's value was accessible.
 	 * @param im
 	 *            The manager to use for creating a new instance, if a {@link DefaultValue} annotation is present.
 	 * @return The Parameter for the given Field, or <code>null</code> if this Field is missing the required
 	 *         annotations.
 	 */
 	@SuppressWarnings("unchecked")
-	public static <T> Parameter<T> createParameter(Field f, T defaultValue, InstantiatorManager im) {
+	public static <T> Parameter<T> createParameter(Field f, T defaultValue, boolean wasFieldAccessible,
+			InstantiatorManager im) {
 
 		/* obtain all intresting annotations. if none of them is set, then we will skip this field and return null. */
 		Prefix fieldPrefix = f.getAnnotation(Prefix.class);
@@ -52,7 +55,7 @@ public class AnnotationHelper {
 			String defaultName = NameAnnotationHelper.getDefaultName(name, f);
 
 			/* Determine default value: */
-			defaultValue = getDefaultValue(defaultValue, (Class<T>) f.getType(), defaultValueAnnotation, im);
+			T determinedDefaultValue = getDefaultValue(defaultValue, (Class<T>) f.getType(), defaultValueAnnotation, im);
 
 			/* Determine all PrefixName pairs: */
 			Set<ParameterPrefixNamePair> ppnp = getParameterPrefixPairs(PrefixAnnotationHelper.fillPrefixes(f),
@@ -61,9 +64,12 @@ public class AnnotationHelper {
 			/* Get the description: */
 			String descriptionStr = getDescription(description);
 
+			boolean hasADefaultValue = wasFieldAccessible
+					|| hasDefaultValue(defaultValue, (Class<T>) f.getType(), defaultValueAnnotation);
+
 			/* Create and return the Parameter: */
-			return new Parameter<T>(defaultValue, (Class<T>) f.getType(), ppnp, defaultPrefix, defaultName,
-					descriptionStr);
+			return new Parameter<T>(determinedDefaultValue, (Class<T>) f.getType(), ppnp, defaultPrefix, defaultName,
+					descriptionStr, hasADefaultValue);
 		}
 
 		return null;
@@ -137,8 +143,10 @@ public class AnnotationHelper {
 				/* Get the description: */
 				String description = getDescription(des);
 
+				boolean hasADefaultValue = hasDefaultValue(null, type, dv);
+
 				/* Create and return the Parameter: */
-				parameters[i] = new Parameter(defaultValue, type, ppnp, defaultPrefix, defaultName, description);
+				parameters[i] = new Parameter(defaultValue, type, ppnp, defaultPrefix, defaultName, description, hasADefaultValue);
 			}
 		}
 
@@ -176,15 +184,15 @@ public class AnnotationHelper {
 	 *            The type of the default value.
 	 * @param defaultValue
 	 *            The default value, as it is given on the current field.
-	 * @param valueType
+	 * @param targetType
 	 * @param d
 	 * @param im
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	public static <T> T getDefaultValue(T defaultValue, Class<T> valueType, DefaultValue d, InstantiatorManager im) {
+	public static <T> T getDefaultValue(T defaultValue, Class<T> targetType, DefaultValue d, InstantiatorManager im) {
 		if (defaultValue != null) {
-			return im.getNewInstanceFrom(defaultValue);
+			return im.getNewInstanceFrom(targetType, defaultValue);
 		}
 
 		if (d != null) {
@@ -192,35 +200,76 @@ public class AnnotationHelper {
 				return null;
 			}
 
-			return im.getNewInstanceFor(valueType, d.value());
+			return im.getNewInstanceFor(targetType, d.value());
 		}
 
 		/* look for nativ datatypes: */
-		if (valueType == int.class) {
+		if (targetType == boolean.class) {
+			return (T) new Boolean(false);
+		}
+		if (targetType == int.class) {
 			return (T) new Integer(0);
 		}
-		if (valueType == long.class) {
+		if (targetType == long.class) {
 			return (T) new Long(0);
 		}
-		if (valueType == short.class) {
+		if (targetType == short.class) {
 			return (T) new Short((short) 0);
 		}
-		if (valueType == byte.class) {
+		if (targetType == byte.class) {
 			return (T) new Byte((byte) 0);
 		}
-		if (valueType == char.class) {
+		if (targetType == char.class) {
 			return (T) new Character((char) 0);
 		}
-		if (valueType == float.class) {
+		if (targetType == float.class) {
 			return (T) new Float(0);
 		}
-		if (valueType == double.class) {
+		if (targetType == double.class) {
 			return (T) new Double(0);
 		}
 
 		/* nothing set: */
-		// TODO: Maybe throw an exception OR nag arout via System.err.println(...)
 		return null;
 	}
 
+	public static <T> boolean hasDefaultValue(T defaultValue, Class<T> valueType, DefaultValue d) {
+		if (defaultValue != null) {
+			return true;
+		}
+
+		if (d != null) {
+			if (d.isNull()) {
+				return true;
+			}
+
+			return true;
+		}
+
+		/* look for nativ datatypes: */
+		if (valueType == int.class) {
+			return true;
+		}
+		if (valueType == long.class) {
+			return true;
+		}
+		if (valueType == short.class) {
+			return true;
+		}
+		if (valueType == byte.class) {
+			return true;
+		}
+		if (valueType == char.class) {
+			return true;
+		}
+		if (valueType == float.class) {
+			return true;
+		}
+		if (valueType == double.class) {
+			return true;
+		}
+
+		/* nothing set: */
+		return false;
+	}
 }

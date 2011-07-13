@@ -15,6 +15,7 @@ public class Parameter<T> implements ImmutableParameter<T> {
 	private String defaultName;
 	private String description;
 	private boolean hasDefaultValue;
+	private boolean hasValueChanged;
 
 	public Parameter(Class<T> valueClassType) {
 		this.defaultValue = null;
@@ -25,10 +26,11 @@ public class Parameter<T> implements ImmutableParameter<T> {
 		this.defaultName = "";
 		this.description = "";
 		hasDefaultValue = false;
+		hasValueChanged = false;
 	}
-	
+
 	public Parameter(T defaultValue, Class<T> valueClassType, Set<ParameterPrefixNamePair> parameterPrefixPairs, String defaultPrefix,
-			String defaultName, String description) {
+			String defaultName, String description, boolean hasDefaultValue) {
 		this.defaultValue = defaultValue;
 		this.currentValue = defaultValue;
 		this.valueClassType = valueClassType;
@@ -36,7 +38,8 @@ public class Parameter<T> implements ImmutableParameter<T> {
 		this.defaultPrefix = defaultPrefix;
 		this.defaultName = defaultName;
 		this.description = description;
-		hasDefaultValue = true;
+		this.hasDefaultValue = hasDefaultValue;
+		hasValueChanged = false;
 	}
 
 	@Override
@@ -60,6 +63,7 @@ public class Parameter<T> implements ImmutableParameter<T> {
 
 	@Override
 	public Set<ParameterPrefixNamePair> getParameterPrefixNamePairs() {
+		hasValueChanged = true;
 		return parameterPrefixPairs;
 	}
 
@@ -80,8 +84,12 @@ public class Parameter<T> implements ImmutableParameter<T> {
 	
 	@Override
 	public boolean hasDefaultValue() {
-		// TODO Auto-generated method stub
 		return hasDefaultValue;
+	}
+	
+	@Override
+	public boolean hasValueChanged() {
+		return hasValueChanged;
 	}
 	
 	//TODO: think about, when two parameters are equal!!! Or can an equality never be achieved?

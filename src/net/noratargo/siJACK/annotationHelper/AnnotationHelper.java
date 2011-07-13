@@ -92,7 +92,8 @@ public class AnnotationHelper {
 		Annotation[][] pAnnotations = c.getParameterAnnotations();
 		Class<?>[] cTypes = c.getParameterTypes();
 
-		boolean skipThisOne = true;
+		/* we will add constructors with no parameters. */
+		boolean skipThisOne = parameters.length > 0;
 
 		for (int i = 0; i < parameters.length; i++) {
 			/* this represents all annotations of the current parameter: */

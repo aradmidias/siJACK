@@ -298,6 +298,11 @@ public class Configurator {
 	 * @see #getConfigurationForObject(Object)
 	 */
 	public <T> T newInstanceFromConstructor(Constructor<T> constructor, boolean autoConfigure) {
+		if (!knownClasses.contains(constructor.getDeclaringClass())) {
+			addConstructors(constructor.getDeclaringClass());
+			pm.applyConfiguration();
+		}
+
 		try {
 			return newInstance(constructor, autoConfigure, pm.getValuesFor(constructor));
 		} catch (Exception e) {

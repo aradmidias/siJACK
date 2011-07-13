@@ -15,7 +15,7 @@ public class TestParitalConstructor {
 		
 		c.addConfigureable(ParitalConstructorClass.class, false);
 		
-		ParitalConstructorClass pcc = c.createNewInstance(ParitalConstructorClass.class, true, cs);
+		ParitalConstructorClass pcc = c.newInstanceFromParitalConstructor(ParitalConstructorClass.class, true, cs);
 		
 		assertTrue(pcc.cm == cs);
 		assertEquals(245, pcc.i);
@@ -28,7 +28,7 @@ public class TestParitalConstructor {
 		ConfigurationStorage cs = new ConfigurationStorage(":", new InstantiatorStorage());
 		Configurator c = new Configurator(cs);
 
-		ParitalConstructorClass pcc = c.createNewInstance(ParitalConstructorClass.class, true, cs);
+		ParitalConstructorClass pcc = c.newInstanceFromParitalConstructor(ParitalConstructorClass.class, true, cs);
 		
 		assertTrue(pcc.cm == cs);
 	}
@@ -39,7 +39,7 @@ public class TestParitalConstructor {
 		ConfigurationStorage cs = new ConfigurationStorage(":", new InstantiatorStorage());
 		Configurator c = new Configurator(cs);
 
-		ParitalConstructorClass pcc = c.createNewInstance(ParitalConstructorClass.class, true, "hallo", cs, 123);
+		ParitalConstructorClass pcc = c.newInstanceFromParitalConstructor(ParitalConstructorClass.class, true, "hallo", cs, 123);
 		
 		assertTrue(pcc.cm == cs);
 	}

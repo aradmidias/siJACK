@@ -34,7 +34,7 @@ public class AlternatePrefixTestClass {
 	}
 
 	public AlternatePrefixTestClass(Configurator cfg) {
-		cfg.applyConfiguration(this);
+		cfg.getConfigurationForObject(this);
 	}
 
 	public AlternatePrefixTestClass() {

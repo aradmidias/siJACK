@@ -25,7 +25,7 @@ public class TestParameterApplyling {
 
 		ParameterApplyingTestClass patc = new ParameterApplyingTestClass();
 
-		c.applyConfiguration(patc);
+		c.getConfigurationForObject(patc);
 		assertEquals(Long.class, patc.c);
 		assertEquals(357951L, patc.longValue);
 		assertEquals(24685, patc.intValue);

@@ -49,9 +49,9 @@ public class Configurator {
 	 *            object.
 	 */
 	@SuppressWarnings("unchecked")
-	public <T extends Object> void addConfigureable(T classInstance) {
+	public <T> void addConfigureable(T classInstance) {
 		/* I assume, that o.getClass() always returns the Class<T>-object if called on an object of type T. */
-		addConfigureable((Class<T>) classInstance.getClass(), classInstance);
+		addConfigureable((Class<T>) classInstance.getClass(), classInstance, true);
 	}
 
 	/**
@@ -64,7 +64,6 @@ public class Configurator {
 	 * @param c
 	 *            The class to add.
 	 */
-
 	public <T> void addConfigureable(Class<T> c) {
 		addConfigureable(c, true);
 	}
@@ -121,27 +120,7 @@ public class Configurator {
 			}
 		}
 
-		addConfigureable(c, instance);
-	}
-
-	/**
-	 * Adds the given class to the ParameterManager, using the <code>classInstance</code> for obtaining the default
-	 * values.
-	 * 
-	 * @param <T>
-	 *            The type of the object, being created.
-	 * @param c
-	 *            The class to add.
-	 * @param classInstance
-	 *            The object, that can be configured. The default values for the parameters will be taken from this
-	 *            object. If this is <code>null</code> only default values from static fields can be obtained.
-	 */
-	public <T extends Object> void addConfigureable(Class<T> c, T classInstance) {
-		if (c == null) {
-			throw new NullPointerException("The parameter c must not be null!");
-		}
-
-		addConfigureable(c, classInstance, true);
+		addConfigureable(c, instance, true);
 	}
 
 	/**
@@ -210,7 +189,7 @@ public class Configurator {
 	 *            ignored.
 	 * @return
 	 */
-	public <T> T createNewInstance(Class<T> c, boolean autoConfigure, Object... params) {
+	public <T> T newInstanceFromParitalConstructor(Class<T> c, boolean autoConfigure, Object... params) {
 		if (!knownClasses.contains(c)) {
 			/* only add the constructors, here: */
 			addConstructors(c.getDeclaredConstructors());
@@ -219,8 +198,7 @@ public class Configurator {
 		}
 
 		Constructor<T> paritalConstructor = pm.getParitalConstructor(c);
-
-		return createNewInstance(paritalConstructor, autoConfigure, pm.getValuesFor(paritalConstructor, params));
+		return newInstance(paritalConstructor, autoConfigure, pm.getValuesFor(paritalConstructor, params));
 	}
 
 	/**
@@ -233,16 +211,16 @@ public class Configurator {
 	 * @param c
 	 *            The class to create an object from, by using
 	 * @param autoConfigure
-	 *            if the created object should be configured, using the {@link #applyConfiguration(Object, Class)}
+	 *            if the created object should be configured, using the {@link #getConfiguration(Object, Class)}
 	 *            method.
 	 * @return The created classe's instance.
 	 */
-	public <T> T createNewInstance(Class<T> c, boolean autoConfigure) {
+	public <T> T newInstanceFromDefaultConstructor(Class<T> c, boolean autoConfigure) {
 		if (!knownClasses.contains(c)) {
 			addConfigureable(c, false);
 		}
 
-		return createNewInstance(pm.getDefaultConstructor(c), autoConfigure);
+		return newInstanceFromConstructor(pm.getDefaultConstructor(c), autoConfigure);
 	}
 
 	/**
@@ -259,8 +237,8 @@ public class Configurator {
 	 * @throws RuntimeException
 	 *             If the new object could not be instantiated.
 	 */
-	public <T> T createNewInstance(Class<T> c, Class<?>... signature) {
-		return createNewInstance(c, true, signature);
+	public <T> T newInstanceFromSignature(Class<T> c, Class<?>... signature) {
+		return newInstanceFromSignature(c, true, signature);
 	}
 
 	/**
@@ -269,7 +247,7 @@ public class Configurator {
 	 * @param c
 	 *            The class to create a new instance from.
 	 * @param autoConfigure
-	 *            if <code>true</code> then the {@link #applyConfiguration(Object)} method will be called on this
+	 *            if <code>true</code> then the {@link #getConfigurationForObject(Object)} method will be called on this
 	 *            object.
 	 * @param signature
 	 *            the signature of the constructor to use for creation
@@ -277,9 +255,9 @@ public class Configurator {
 	 * @throws RuntimeException
 	 *             If the new object could not be instantiated.
 	 */
-	public <T> T createNewInstance(Class<T> c, boolean autoConfigure, Class<?>... signature) {
+	public <T> T newInstanceFromSignature(Class<T> c, boolean autoConfigure, Class<?>... signature) {
 		try {
-			return createNewInstance(c.getDeclaredConstructor(signature), autoConfigure);
+			return newInstanceFromConstructor(c.getDeclaredConstructor(signature), autoConfigure);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
@@ -287,7 +265,7 @@ public class Configurator {
 
 	/**
 	 * Creates a new instance of the type <code>T</code> by using the given <code>constructor</code>. The
-	 * autoconfigure-flag allows to automatically call {@link #applyConfiguration(Object)}, using the newly created
+	 * autoconfigure-flag allows to automatically call {@link #getConfigurationForObject(Object)}, using the newly created
 	 * object.
 	 * 
 	 * @param <T>
@@ -295,14 +273,14 @@ public class Configurator {
 	 * @param constructor
 	 *            The constructor to use for creation.
 	 * @param autoConfigure
-	 *            if <code>true</code> then the {@link #applyConfiguration(Object)} method will be called on this
+	 *            if <code>true</code> then the {@link #getConfigurationForObject(Object)} method will be called on this
 	 *            object.
 	 * @return The instanciated object.
 	 * @throws RuntimeException
 	 *             If the new object could not be instantiated.
-	 * @see #applyConfiguration(Object)
+	 * @see #getConfigurationForObject(Object)
 	 */
-	public <T> T createNewInstance(Constructor<T> constructor, boolean autoConfigure) {
+	public <T> T newInstanceFromConstructor(Constructor<T> constructor, boolean autoConfigure) {
 		if (!knownClasses.contains(constructor.getDeclaringClass())) {
 			/* only add the constructors, here: */
 			addConstructors(constructor.getDeclaringClass().getDeclaredConstructors());
@@ -310,15 +288,13 @@ public class Configurator {
 			pm.applyConfiguration();
 		}
 
-		return createNewInstance(constructor, autoConfigure, pm.getValuesFor(constructor));
+		return newInstance(constructor, autoConfigure, pm.getValuesFor(constructor));
 	}
 
-	private <T> T createNewInstance(Constructor<T> constructor, boolean autoConfigure, Object... params) {
+	private <T> T newInstance(Constructor<T> constructor, boolean autoConfigure, Object... params) {
 		try {
 			constructor.setAccessible(true);
-
-			T instance;
-			instance = constructor.newInstance(params);
+			T instance = constructor.newInstance(params);
 
 			/* add the fields and so on, here: */
 			if (!knownClasses.contains(constructor.getDeclaringClass())) {
@@ -327,7 +303,7 @@ public class Configurator {
 
 			/* apply the configuration if desired: */
 			if (autoConfigure) {
-				applyConfiguration(instance);
+				getConfigurationForObject(instance);
 			}
 
 			return instance;
@@ -344,26 +320,25 @@ public class Configurator {
 	 * @param o
 	 *            The object to apply the configuration to.
 	 */
-	public <T> void applyConfiguration(T o) {
+	public <T> void getConfigurationForObject(T o) {
 		@SuppressWarnings("unchecked")
 		Class<T> c = (Class<T>) o.getClass();
 
 		if (!knownClasses.contains(c)) {
 			/* let's be merciful to people, who forgot to add */
-			addConfigureable(c, o);
+			addConfigureable(c, o, false);
 		}
 
-		applyConfiguration(o, c);
+		getConfiguration(o, c);
 	}
 
-	public void applyConfiguration(Class<?> c) {
-
+	public void getConfigurationForClass(Class<?> c) {
 		if (!knownClasses.contains(c)) {
 			/* let's be merciful to people, who forgot to add */
 			addConfigureable(c);
 		}
 
-		applyConfiguration(null, c);
+		getConfiguration(null, c);
 	}
 
 	/**
@@ -374,9 +349,9 @@ public class Configurator {
 	 * @param c
 	 *            The class object, from which to take the
 	 */
-	private void applyConfiguration(Object o, Class<?> c) {
+	private void getConfiguration(Object o, Class<?> c) {
 		if (c.getSuperclass() != null) {
-			applyConfiguration(o, c.getSuperclass());
+			getConfiguration(o, c.getSuperclass());
 		}
 
 		for (Field f : c.getDeclaredFields()) {

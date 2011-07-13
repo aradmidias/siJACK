@@ -23,7 +23,7 @@ public class TestSuperclassAutoInitialisation {
 		cs.setValue(ParametrisedClass.class.getName(), "subString", "new value for a field of an instanciable class.");
 		ParametrisedClass vstc = new ParametrisedClass();
 
-		c.applyConfiguration(vstc);
+		c.getConfigurationForObject(vstc);
 
 //		for (Orig_FieldDetails<?> p : cs.getParameters()) {
 //			String s = p.getDefaultParameterPrefix() + cs.getPrefixNameSeperator() + p.getDefaultParameterName();

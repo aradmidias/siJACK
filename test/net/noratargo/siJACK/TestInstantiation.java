@@ -24,7 +24,7 @@ public class TestInstantiation {
 		cs.setValue(ValueSettingTestClass.class.getName(), "name", "admin");
 		ValueSettingTestClass vstc = new ValueSettingTestClass();
 
-		c.applyConfiguration(vstc);
+		c.getConfigurationForObject(vstc);
 
 		assertEquals("admin", vstc.name);
 	}
@@ -39,7 +39,7 @@ public class TestInstantiation {
 		c.addConfigureable(new ValueSettingTestClass());
 		ValueSettingTestClass vstc = new ValueSettingTestClass();
 
-		c.applyConfiguration(vstc);
+		c.getConfigurationForObject(vstc);
 
 		assertEquals("admin", vstc.name);
 	}
@@ -58,7 +58,7 @@ public class TestInstantiation {
 
 		AlternatePrefixTestClass iwp = new AlternatePrefixTestClass();
 
-		c.applyConfiguration(iwp);
+		c.getConfigurationForObject(iwp);
 		assertEquals("prefix_", iwp.getAlternatePrefixParam());
 		assertEquals("/etc/fstab", iwp.getFilename());
 		assertEquals("root", iwp.getUsername());

@@ -160,30 +160,6 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 			Parameter<?>[] parameters = AnnotationHelper.createParametersFromConstructor(constr, im);
 
 			if (parameters != null) {
-				/* Handle default cosntructor */
-				DefaultConstructor defConstr = constr.getAnnotation(DefaultConstructor.class);
-				
-				if (defConstr != null) {
-					if (cDefaultConstructors.containsKey(constr.getDeclaringClass())) {
-						throw new RuntimeException("You must not specify multiple default construcotrs for one class!");
-					}
-					
-					cDefaultConstructors.put(constr.getDeclaringClass(), constr);
-				}
-				
-				/* handle partial constructor: */
-				PartialConstructor pConstr = constr.getAnnotation(PartialConstructor.class);
-
-				if (pConstr != null) {
-					if (cPartialConstructors.containsKey(constr.getDeclaringClass())) {
-						throw new RuntimeException("You must not specify multiple partial construcotrs for one class!");
-					}
-					
-					cPartialConstructors.put(constr.getDeclaringClass(), constr);
-				}
-				
-				
-				
 				cpParameters.put(constr, parameters);
 
 				for (Parameter<?> p : parameters) {
@@ -191,6 +167,28 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 						addPNParameters(p);
 					}
 				}
+			}
+
+			/* Handle default cosntructor */
+			DefaultConstructor defConstr = constr.getAnnotation(DefaultConstructor.class);
+			
+			if (defConstr != null) {
+				if (cDefaultConstructors.containsKey(constr.getDeclaringClass())) {
+					throw new RuntimeException("You must not specify multiple default construcotrs for one class!");
+				}
+				
+				cDefaultConstructors.put(constr.getDeclaringClass(), constr);
+			}
+			
+			/* handle partial constructor: */
+			PartialConstructor pConstr = constr.getAnnotation(PartialConstructor.class);
+
+			if (pConstr != null) {
+				if (cPartialConstructors.containsKey(constr.getDeclaringClass())) {
+					throw new RuntimeException("You must not specify multiple partial construcotrs for one class!");
+				}
+				
+				cPartialConstructors.put(constr.getDeclaringClass(), constr);
 			}
 		}
 	}
@@ -300,6 +298,7 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 		return new HashSet<ImmutableParameter<?>>(fpParameters.values());
 	}
 	
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public <T> Set<ImmutableConstructor<?>> getConstructors() {
 		Set<ImmutableConstructor<?>> result = new HashSet<ImmutableConstructor<?>>();

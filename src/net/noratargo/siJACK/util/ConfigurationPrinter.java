@@ -1,4 +1,4 @@
-package net.noratargo.siJACK;
+package net.noratargo.siJACK.util;
 
 import java.io.OutputStream;
 import java.util.Set;

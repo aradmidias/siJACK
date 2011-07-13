@@ -179,4 +179,12 @@ public interface ParameterManager {
 	 */
 	public boolean hasField(Field f);
 
+	/**
+	 * returns <code>true</code> if this configuration manager has a value for this field.
+	 * 
+	 * @param f
+	 * @return
+	 */
+	public boolean hasValueFor(Field f);
+
 }

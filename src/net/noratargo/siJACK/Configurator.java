@@ -382,8 +382,11 @@ public class Configurator {
 		for (Field f : c.getDeclaredFields()) {
 			if (pm.hasField(f)) {
 				try {
-					if (o != null || Modifier.isStatic(f.getModifiers())) {
-						f.setAccessible(true);
+					f.setAccessible(true);
+					
+					if (Modifier.isStatic(f.getModifiers())) {
+						f.set(o, pm.getValueFor(f));
+					} else if (o != null && pm.hasValueFor(f)) {
 						f.set(o, pm.getValueFor(f));
 					} else {
 						System.err

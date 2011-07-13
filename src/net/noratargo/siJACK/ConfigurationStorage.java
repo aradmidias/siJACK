@@ -130,6 +130,17 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 
 		return im.getNewInstanceFrom(p.getValueClassType(), p.getCurrentValue());
 	}
+	
+	@Override
+	public boolean hasValueFor(Field f) {
+		Parameter<?> p = fpParameters.get(f);
+
+		if (p == null) {
+			throw new NoSuchElementException("The given field is no known parameter: " + f);
+		}
+
+		return p.hasDefaultValue() || p.hasValueChanged();
+	}
 
 	@Override
 	public String getPrefixNameSeperator() {

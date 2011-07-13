@@ -24,9 +24,13 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Set;
 
+import javax.naming.ConfigurationException;
+
 public class ConfigurationStorage implements ParameterManager, ConfigurationManager {
 
-	private final String seperator;
+	private final String prefixNameSeperator;
+	
+	private final String nameValueSeperator;
 
 	/**
 	 * Stores all parameters, grouped by declaring class and the field's name.
@@ -48,8 +52,21 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 
 	private final InstantiatorManager im;
 
-	public ConfigurationStorage(String seperator, InstantiatorManager im) {
-		this.seperator = seperator;
+	public ConfigurationStorage(InstantiatorManager im) {
+		this(":", "=", im);
+	}
+
+	public ConfigurationStorage(String prefixNameSeperator, InstantiatorManager im) {
+		this(prefixNameSeperator, "=", im);
+	}
+	
+	public ConfigurationStorage(String prefixNameSeperator, String nameValueSeperator, InstantiatorManager im) {
+		assert prefixNameSeperator != null : "The parameter prefixNameSeperator must not be null!";
+		assert nameValueSeperator != null : "The parameter nameValueSeperator must not be null!";
+		assert im != null : "The parameter im must not be null!";
+		
+		this.prefixNameSeperator = prefixNameSeperator;
+		this.nameValueSeperator = nameValueSeperator;
 		this.im = im;
 
 		fpParameters = new HashMap<Field, Parameter<?>>();
@@ -61,8 +78,32 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 	}
 
 	@Override
-	public void setValue(String name, String value) {
-		int index = name.indexOf(seperator);
+	public void setValue(String pns) throws ConfigurationException {
+		int prefixNameSeperatorIndex = pns.indexOf(prefixNameSeperator);
+		int nameValueSeperatorIndex = pns.indexOf(nameValueSeperator, prefixNameSeperatorIndex);
+		
+		if (prefixNameSeperatorIndex == -1) {
+			prefixNameSeperatorIndex = 0;
+		}
+		
+		if (nameValueSeperatorIndex == -1) {
+			nameValueSeperatorIndex = prefixNameSeperatorIndex + prefixNameSeperator.length();
+		}
+		
+		String prefix = pns.substring(0, prefixNameSeperatorIndex);
+		String name = pns.substring(prefixNameSeperatorIndex + prefixNameSeperator.length(), nameValueSeperatorIndex);
+		String value = pns.substring(nameValueSeperatorIndex + nameValueSeperator.length());
+		
+		if (! value.equals("") && !name.equals("")) {
+			setValue(prefix, name, value);
+		} else {
+			throw new ConfigurationException("The name of the property to set, or the value to set (or both) are missing in configuration string: "+ pns);
+		}
+	}
+	
+	@Override
+	public void setValue(String name, String value) throws ConfigurationException {
+		int index = name.indexOf(prefixNameSeperator);
 
 		if (index == -1) {
 			/* no seperator, therefor no prefix present */
@@ -70,18 +111,16 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 		} else if (index == 0) {
 			/* the seperatoris at the beginnig - so still no prefix */
 			setValue("", name, value);
-		} else if (index + seperator.length() >= name.length()) {
-			/* no key present */
-			// TODO think about throwing an exception instead!?
-			return;
+		} else if (index + prefixNameSeperator.length() >= name.length()) {
+			/* no name present - do nothing here, since in this case, no element can be adressed, by now. */
 		} else {
 			/* We have both, prefix and key. */
-			setValue(name.substring(0, index), name.substring(index + seperator.length(), name.length()), value);
+			setValue(name.substring(0, index), name.substring(index + prefixNameSeperator.length(), name.length()), value);
 		}
 	}
 
 	@Override
-	public <T> void setValue(String prefix, String name, String value) {
+	public <T> void setValue(String prefix, String name, String value) throws ConfigurationException {
 		Set<Parameter<?>> parameters = pnParameters.get(prefix, name);
 
 		if (parameters == null) {
@@ -118,6 +157,16 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 			}
 		}
 	}
+	
+	public Set<ParameterPrefixNamePair> getUnapliedConfiguration() {
+		Set<ParameterPrefixNamePair> ppnps = new HashSet<ParameterPrefixNamePair>();
+		
+		for (PrefixNameValueStorage pnvs : unsetValues) {
+			ppnps.add(new ParameterPrefixNamePair(pnvs.prefix, pnvs.name));
+		}
+		
+		return ppnps;
+	}
 
 	@Override
 	public <T> T getValueFor(Field f) {
@@ -144,7 +193,7 @@ public class ConfigurationStorage implements ParameterManager, ConfigurationMana
 
 	@Override
 	public String getPrefixNameSeperator() {
-		return seperator;
+		return prefixNameSeperator;
 	}
 
 	@Override

@@ -8,10 +8,12 @@ import net.noratargo.siJACK.testClasses.ParameterApplyingTestClass;
 
 import org.junit.Test;
 
+import javax.naming.ConfigurationException;
+
 public class TestParameterApplyling {
 
 	@Test
-	public final void testAlternativeParameterNames() {
+	public final void testAlternativeParameterNames() throws ConfigurationException {
 		InstantiatorManager im = new InstantiatorStorage();
 		ConfigurationStorage cs = new ConfigurationStorage(":", im);
 		Configurator c = new Configurator(cs);

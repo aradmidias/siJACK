@@ -7,10 +7,12 @@ import net.noratargo.siJACK.testClasses.ParametrisedClass;
 
 import org.junit.Test;
 
+import javax.naming.ConfigurationException;
+
 public class TestSuperclassAutoInitialisation {
 
 	@Test
-	public final void testConfigurationStorage() {
+	public final void testConfigurationStorage() throws ConfigurationException {
 		InstantiatorManager im = new InstantiatorStorage();
 		ConfigurationStorage cs = new ConfigurationStorage(":", im);
 		Configurator c = new Configurator(cs);

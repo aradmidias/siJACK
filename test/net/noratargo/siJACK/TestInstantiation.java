@@ -9,10 +9,12 @@ import net.noratargo.siJACK.testClasses.ValueSettingTestClass;
 
 import org.junit.Test;
 
+import javax.naming.ConfigurationException;
+
 public class TestInstantiation {
 
 	@Test
-	public final void testConfigurationStorage() {
+	public final void testConfigurationStorage() throws ConfigurationException {
 		InstantiatorManager im = new InstantiatorStorage();
 		ConfigurationStorage cs = new ConfigurationStorage(":", im);
 		Configurator c = new Configurator(cs);
@@ -28,7 +30,7 @@ public class TestInstantiation {
 	}
 
 	@Test
-	public final void testConfigurationBeforeAddingConfigureable() {
+	public final void testConfigurationBeforeAddingConfigureable() throws ConfigurationException {
 		InstantiatorManager im = new InstantiatorStorage();
 		ConfigurationStorage cs = new ConfigurationStorage(":", im);
 		Configurator c = new Configurator(cs);
@@ -43,7 +45,7 @@ public class TestInstantiation {
 	}
 
 	@Test
-	public final void testAlternativeParameterNames() {
+	public final void testAlternativeParameterNames() throws ConfigurationException {
 		InstantiatorManager im = new InstantiatorStorage();
 		ConfigurationStorage cs = new ConfigurationStorage(":", im);
 		Configurator c = new Configurator(cs);

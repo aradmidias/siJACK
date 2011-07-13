@@ -1,5 +1,7 @@
 package net.noratargo.siJACK.util;
 
+import javax.naming.ConfigurationException;
+
 import net.noratargo.siJACK.interfaces.ConfigurationManager;
 
 /**
@@ -27,10 +29,11 @@ public class CLIParser {
 			}
 			
 			if (arg.startsWith("--")) {
-				/* try to split the arg into ist prefix:name and value part: */
-				int i = arg.indexOf('=');
-
-				cm.setValue(arg.substring(2, i), arg.substring(i + 1));
+				try {
+					cm.setValue(arg.substring(2));
+				} catch (ConfigurationException e) {
+					System.err.println("CLIParser.parseCLI() skipping command line argument "+ arg);
+				}
 			}
 		}
 	}

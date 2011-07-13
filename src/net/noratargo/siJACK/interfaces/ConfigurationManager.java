@@ -2,6 +2,8 @@ package net.noratargo.siJACK.interfaces;
 
 import java.util.Set;
 
+import javax.naming.ConfigurationException;
+
 /**
  * A ConfigurationManager is capable of setting the values of configureable fields and constructor's parameters to the
  * specified values, while identifying them by their prefix and name.
@@ -10,9 +12,19 @@ import java.util.Set;
  */
 public interface ConfigurationManager {
 
-	public void setValue(String name, String value);
+	/**
+	 * Specifies the value for a parameter in a single string. The string should contain the prefix, the name and the
+	 * value. The delimiters between prefix, name and value are implementation dependent.
+	 * 
+	 * @param pns
+	 *            The string containing prefix, name and value.
+	 * @throws ConfigurationException 
+	 */
+	public void setValue(String pns) throws ConfigurationException;
 
-	public <T> void setValue(String prefix, String name, String value);
+	public void setValue(String name, String value) throws ConfigurationException;
+
+	public <T> void setValue(String prefix, String name, String value) throws ConfigurationException;
 
 	/**
 	 * Returns the String, representing the Seperator, used to seperate a parameter's prefix and name.
@@ -37,4 +49,5 @@ public interface ConfigurationManager {
 	 * @return
 	 */
 	public <T> Set<ImmutableConstructor<?>> getConstructors();
+
 }

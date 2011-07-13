@@ -6,7 +6,6 @@ import net.noratargo.siJACK.interfaces.ParameterManager;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.HashSet;
 import java.util.Set;
@@ -95,32 +94,13 @@ public class Configurator {
 
 		if (tryToInstantiate) {
 			try {
-				/*
-				 * try to create a new instance. If this fails (e.g. because c is an instance of Class<?>, then we still
-				 * got the empty
-				 */
-				Constructor<T> constructor = c.getDeclaredConstructor();
-
-				if (constructor != null) {
-					constructor.setAccessible(true);
-					instance = constructor.newInstance();
-				}
-			} catch (InstantiationException e) {
-				e.printStackTrace();
-			} catch (IllegalAccessException e) {
-				e.printStackTrace();
-			} catch (SecurityException e) {
-				e.printStackTrace();
-			} catch (NoSuchMethodException e) {
-				e.printStackTrace();
-			} catch (IllegalArgumentException e) {
-				e.printStackTrace();
-			} catch (InvocationTargetException e) {
-				e.printStackTrace();
+				instance = newInstanceFromSignature(c, false);
+			} catch (RuntimeException re) {
+				/* do nothing - the instantiation just failed. */
 			}
 		}
 
-		addConfigureable(c, instance, true);
+		addConfigureable(c, instance, false);
 	}
 
 	/**

@@ -6,6 +6,7 @@ import net.noratargo.siJACK.interfaces.ParameterManager;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.util.HashSet;
 import java.util.Set;
@@ -50,7 +51,10 @@ public class Configurator {
 	@SuppressWarnings("unchecked")
 	public <T> void addConfigureable(T classInstance) {
 		/* I assume, that o.getClass() always returns the Class<T>-object if called on an object of type T. */
-		addConfigureable((Class<T>) classInstance.getClass(), classInstance, true);
+		addConstructors(classInstance.getClass());
+		addFields((Class<T>) classInstance.getClass(), classInstance);
+		markClassAsAdded(classInstance.getClass());
+		pm.applyConfiguration();
 	}
 
 	/**
@@ -90,32 +94,40 @@ public class Configurator {
 	 *            will be analysed, unless the non-static fields do have a {@link DefaultValue} annotation.
 	 */
 	public <T> void addConfigureable(Class<T> c, boolean tryToInstantiate) {
+		addConstructors(c);
+
 		T instance = null;
 
 		if (tryToInstantiate) {
 			try {
+				/* use the parameterless construcotr for instantiation: */
 				instance = newInstanceFromSignature(c, false);
 			} catch (RuntimeException re) {
 				/* do nothing - the instantiation just failed. */
 			}
 		}
 
-		addConfigureable(c, instance, false);
+		addFields(c, instance);
+		markClassAsAdded(c);
+		pm.applyConfiguration();
 	}
 
 	/**
+	 * Adds all fields of the given class. This method works recursiv up to the first class, that is already in
+	 * {@link #knownClasses}.
+	 * 
 	 * @param <T>
 	 *            any sub-type of Object - only used for sme type-safety.
 	 * @param c
+	 *            The class to add the fields from.
 	 * @param o
+	 *            An instanco of <code>c</code>, if available.
 	 * @param applyConfiguration
 	 */
-	private <T extends Object> void addConfigureable(Class<T> c, T o, boolean applyConfiguration) {
+	private <T extends Object> void addFields(Class<T> c, T o) {
 		if (!knownClasses.contains(c)) {
-			knownClasses.add(c);
-
 			if (c.getSuperclass() != null) {
-				addConfigureable(c.getSuperclass(), o, false);
+				addFields(c.getSuperclass(), o);
 			}
 
 			for (Field f : c.getDeclaredFields()) {
@@ -131,25 +143,40 @@ public class Configurator {
 					} else {
 						pm.addField(f, f.get(o));
 					}
-				} catch (IllegalArgumentException e) {
-					e.printStackTrace();
-				} catch (IllegalAccessException e) {
+				} catch (Exception e) {
+					/* print a stack trace and continue with the next field. */
 					e.printStackTrace();
 				}
 			}
-
-			addConstructors(c.getDeclaredConstructors());
-		}
-
-		if (applyConfiguration) {
-			pm.applyConfiguration();
 		}
 	}
 
-	private void addConstructors(Constructor<?>[] constructors) {
-		for (Constructor<?> constr : constructors) {
-			constr.setAccessible(true);
-			pm.addConstructor(constr);
+	/**
+	 * Adds all construcotrs of class c. This method works recursiv up to the first class, that is already in
+	 * {@link #knownClasses}.
+	 * 
+	 * @param c
+	 *            The class to add all constructors from.
+	 */
+	private void addConstructors(Class<?> c) {
+		if (!knownClasses.contains(c)) {
+			if (c.getSuperclass() != null) {
+				addConstructors(c.getSuperclass());
+			}
+
+			Constructor<?>[] constructors = c.getDeclaredConstructors();
+
+			for (Constructor<?> constr : constructors) {
+				constr.setAccessible(true);
+				pm.addConstructor(constr);
+			}
+		}
+	}
+
+	private void markClassAsAdded(Class<?> c) {
+		if (c != null && !knownClasses.contains(c)) {
+			markClassAsAdded(c.getSuperclass());
+			knownClasses.add(c);
 		}
 	}
 
@@ -171,14 +198,21 @@ public class Configurator {
 	 */
 	public <T> T newInstanceFromParitalConstructor(Class<T> c, boolean autoConfigure, Object... params) {
 		if (!knownClasses.contains(c)) {
-			/* only add the constructors, here: */
-			addConstructors(c.getDeclaredConstructors());
-
+			addConstructors(c);
 			pm.applyConfiguration();
 		}
 
-		Constructor<T> paritalConstructor = pm.getParitalConstructor(c);
-		return newInstance(paritalConstructor, autoConfigure, pm.getValuesFor(paritalConstructor, params));
+		try {
+			Constructor<T> paritalConstructor = pm.getParitalConstructor(c);
+			return newInstance(paritalConstructor, autoConfigure, pm.getValuesFor(paritalConstructor, params));
+		} catch (Exception e) {
+			/* the instantiation failed - so we have to take care of adding the fields and marking the classes: */
+			addFields(c, null);
+			markClassAsAdded(c);
+			pm.applyConfiguration();
+			
+			throw new RuntimeException(e);
+		}
 	}
 
 	/**
@@ -191,13 +225,12 @@ public class Configurator {
 	 * @param c
 	 *            The class to create an object from, by using
 	 * @param autoConfigure
-	 *            if the created object should be configured, using the {@link #getConfiguration(Object, Class)}
-	 *            method.
+	 *            if the created object should be configured, using the {@link #getConfiguration(Object, Class)} method.
 	 * @return The created classe's instance.
 	 */
 	public <T> T newInstanceFromDefaultConstructor(Class<T> c, boolean autoConfigure) {
 		if (!knownClasses.contains(c)) {
-			addConfigureable(c, false);
+			addConstructors(c);
 		}
 
 		return newInstanceFromConstructor(pm.getDefaultConstructor(c), autoConfigure);
@@ -218,7 +251,11 @@ public class Configurator {
 	 *             If the new object could not be instantiated.
 	 */
 	public <T> T newInstanceFromSignature(Class<T> c, Class<?>... signature) {
-		return newInstanceFromSignature(c, true, signature);
+		try {
+			return newInstanceFromConstructor(c.getDeclaredConstructor(signature), true);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	/**
@@ -245,8 +282,8 @@ public class Configurator {
 
 	/**
 	 * Creates a new instance of the type <code>T</code> by using the given <code>constructor</code>. The
-	 * autoconfigure-flag allows to automatically call {@link #getConfigurationForObject(Object)}, using the newly created
-	 * object.
+	 * autoconfigure-flag allows to automatically call {@link #getConfigurationForObject(Object)}, using the newly
+	 * created object.
 	 * 
 	 * @param <T>
 	 *            The type of the object to create.
@@ -261,35 +298,32 @@ public class Configurator {
 	 * @see #getConfigurationForObject(Object)
 	 */
 	public <T> T newInstanceFromConstructor(Constructor<T> constructor, boolean autoConfigure) {
-		if (!knownClasses.contains(constructor.getDeclaringClass())) {
-			/* only add the constructors, here: */
-			addConstructors(constructor.getDeclaringClass().getDeclaredConstructors());
-
-			pm.applyConfiguration();
-		}
-
-		return newInstance(constructor, autoConfigure, pm.getValuesFor(constructor));
-	}
-
-	private <T> T newInstance(Constructor<T> constructor, boolean autoConfigure, Object... params) {
 		try {
-			constructor.setAccessible(true);
-			T instance = constructor.newInstance(params);
-
-			/* add the fields and so on, here: */
-			if (!knownClasses.contains(constructor.getDeclaringClass())) {
-				addConfigureable(constructor.getDeclaringClass(), instance, true);
-			}
-
-			/* apply the configuration if desired: */
-			if (autoConfigure) {
-				getConfigurationForObject(instance);
-			}
-
-			return instance;
+			return newInstance(constructor, autoConfigure, pm.getValuesFor(constructor));
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	private <T> T newInstance(Constructor<T> constructor, boolean autoConfigure, Object... params)
+			throws IllegalArgumentException, InstantiationException, IllegalAccessException, InvocationTargetException {
+		constructor.setAccessible(true);
+		T instance = constructor.newInstance(params);
+
+		/* add the fields and so on, here: */
+		if (!knownClasses.contains(constructor.getDeclaringClass())) {
+			addConstructors(constructor.getDeclaringClass());
+			addFields(constructor.getDeclaringClass(), instance);
+			markClassAsAdded(constructor.getDeclaringClass());
+			pm.applyConfiguration();
+		}
+
+		/* apply the configuration if desired: */
+		if (autoConfigure) {
+			getConfigurationForObject(instance);
+		}
+
+		return instance;
 	}
 
 	/**
@@ -306,7 +340,7 @@ public class Configurator {
 
 		if (!knownClasses.contains(c)) {
 			/* let's be merciful to people, who forgot to add */
-			addConfigureable(c, o, false);
+			addConfigureable(o);
 		}
 
 		getConfiguration(o, c);
@@ -315,7 +349,7 @@ public class Configurator {
 	public void getConfigurationForClass(Class<?> c) {
 		if (!knownClasses.contains(c)) {
 			/* let's be merciful to people, who forgot to add */
-			addConfigureable(c);
+			addConfigureable(c, false);
 		}
 
 		getConfiguration(null, c);
@@ -338,7 +372,7 @@ public class Configurator {
 			if (pm.hasField(f)) {
 				try {
 					f.setAccessible(true);
-					
+
 					if (Modifier.isStatic(f.getModifiers())) {
 						f.set(o, pm.getValueFor(f));
 					} else if (o != null && pm.hasValueFor(f)) {
